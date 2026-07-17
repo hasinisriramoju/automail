@@ -58,8 +58,18 @@ const errorHandler = (err, req, res, next) => {
 
   // Custom application errors with statusCode
   const statusCode = err.statusCode || err.status || 500;
+  
+  // Let SMTP or Nodemailer errors bypass the generic production error masking so we can diagnose connection issues
+  const isSmtpError = err.message && (
+    err.message.includes('SMTP') || 
+    err.message.includes('mail') || 
+    err.message.includes('connect') || 
+    err.message.includes('auth') ||
+    err.message.includes('Nodemailer')
+  );
+
   const message =
-    process.env.NODE_ENV === 'production' && statusCode === 500
+    process.env.NODE_ENV === 'production' && statusCode === 500 && !isSmtpError
       ? 'Internal server error'
       : err.message || 'Internal server error';
 
