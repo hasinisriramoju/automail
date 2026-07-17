@@ -20,24 +20,24 @@ const createLimiter = (windowMs, max, message) =>
     },
   });
 
-// 30 AI generations per 15 minutes per IP
+// 200 AI generations per 15 minutes per IP (supports large campaigns)
 const aiGenerateLimiter = createLimiter(
   15 * 60 * 1000,
-  parseInt(process.env.RATE_LIMIT_AI || '30', 10),
+  parseInt(process.env.RATE_LIMIT_AI || '200', 10),
   'Too many email generation requests. Please wait before generating more.'
 );
 
-// 20 email sends per 15 minutes per IP
+// 200 email sends per 15 minutes per IP (supports bulk dispatch)
 const emailSendLimiter = createLimiter(
   15 * 60 * 1000,
-  parseInt(process.env.RATE_LIMIT_SEND || '20', 10),
+  parseInt(process.env.RATE_LIMIT_SEND || '200', 10),
   'Too many send requests. Please wait before sending more emails.'
 );
 
-// General API limiter — 200 requests per 15 minutes
+// General API limiter — 1000 requests per 15 minutes
 const generalLimiter = createLimiter(
   15 * 60 * 1000,
-  200,
+  1000,
   'Too many requests. Please slow down.'
 );
 
