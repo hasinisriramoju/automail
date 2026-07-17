@@ -1,0 +1,50 @@
+{
+  "name": "onit-autoemail",
+  "version": "1.0.0",
+  "description": "AI-powered personalized email outreach platform for OnIT India",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "test": "jest --coverage"
+  },
+  "keywords": [
+    "email",
+    "ai",
+    "outreach",
+    "personalization",
+    "nodemailer",
+    "openai"
+  ],
+  "author": "OnIT India",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.7.2",
+    "cheerio": "^1.0.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-rate-limit": "^7.3.1",
+    "helmet": "^7.1.0",
+    "joi": "^17.13.1",
+    "mongoose": "^8.4.3",
+    "morgan": "^1.10.0",
+    "node-cron": "^3.0.3",
+    "nodemailer": "^6.9.13",
+    "openai": "^4.52.2",
+    "uuid": "^10.0.0",
+    "winston": "^3.13.0"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "nodemon": "^3.1.4",
+    "supertest": "^7.0.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": [
+      "**/__tests__/**/*.js",
+      "**/*.test.js"
+    ]
+  }
+}

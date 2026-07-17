@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OnIT India — AI Outreach Platform</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Custom Styling -->
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+
+  <!-- MAIN APP WRAPPER -->
+  <div class="app-container">
+
+    <!-- SIDEBAR NAVIGATION -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="brand-logo">
+          <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span class="brand-name">OnIT Outreach</span>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <button class="nav-item active" id="tab-btn-dashboard">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+          Dashboard
+        </button>
+        <button class="nav-item" id="tab-btn-recipients">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Recipients
+        </button>
+        <button class="nav-item" id="tab-btn-settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          Brand Profile
+        </button>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="model-badge">
+          <div class="badge-dot pulse-amber"></div>
+          <span class="model-name">Groq (llama-3.1-instant) ⚡</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- CONTENT WRAPPER -->
+    <main class="main-content">
+      
+      <!-- TOP HEADER BAR -->
+      <header class="content-header">
+        <div class="header-title">
+          <h1 id="page-title">Outreach Dashboard</h1>
+          <p id="page-subtitle">Welcome to OnIT India's intelligent email hub.</p>
+        </div>
+        
+        <!-- STATS PANEL -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <span class="stat-label">Sent Emails</span>
+            <span class="stat-value" id="stat-sent">0</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Pending Drafts</span>
+            <span class="stat-value text-indigo" id="stat-drafts">0</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Processing</span>
+            <span class="stat-value text-amber" id="stat-processing">0</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Failed Sends</span>
+            <span class="stat-value text-rose" id="stat-failed">0</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- TAB VIEW PANELS -->
+      <div class="tab-panels-container">
+        
+        <!-- 1. DASHBOARD VIEW -->
+        <section class="tab-panel active" id="panel-dashboard">
+          
+          <div class="dashboard-grid">
+            
+            <!-- LEFT PANEL: CAMPAIGN LAUNCHER -->
+            <div class="dashboard-card card-double">
+              <div class="card-header">
+                <h2>Bulk Outreach Campaigns</h2>
+                <p>Run automated scraping, generation, and dispatch for recipient lists.</p>
+              </div>
+              
+              <div class="campaign-launcher-box">
+                <div class="form-row">
+                  <div class="form-group flex-2">
+                    <label for="campaign-select">Choose Recipient Group</label>
+                    <select id="campaign-select">
+                      <option value="">All Available Recipients</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label for="campaign-outreach-type">Outreach Intent</label>
+                    <select id="campaign-outreach-type">
+                      <option value="partnership">Partnership</option>
+                      <option value="sales">Sales</option>
+                      <option value="startup_collab">Startup Collab</option>
+                      <option value="investor">Investor</option>
+                      <option value="networking">Networking</option>
+                      <option value="hiring">Hiring</option>
+                      <option value="internship">Internship</option>
+                      <option value="custom">Custom</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label for="campaign-hint">Contextual Pitch Prompt Hint (Optional)</label>
+                  <textarea id="campaign-hint" rows="2" placeholder="e.g. Focus on our custom payment flow expertise and fintech vertical."></textarea>
+                </div>
+                 <div class="campaign-actions">
+                  <button class="btn btn-indigo" id="btn-campaign-generate">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+                    Generate Drafts in Bulk
+                  </button>
+                  <button class="btn btn-emerald" id="btn-campaign-send" disabled>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                    Start Bulk Send Dispatch
+                  </button>
+                 </div>
+
+                <!-- Bulk Progress Bar (hidden until generation starts) -->
+                <div id="bulk-progress-wrap" style="display:none; margin-top: 16px;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                    <span id="bulk-progress-label" style="font-size: 12px; font-weight: 600; color: var(--text-normal);">Generating drafts...</span>
+                    <span id="bulk-progress-count" style="font-size: 12px; color: var(--text-muted);">0 / 0</span>
+                  </div>
+                  <div style="background: var(--border-color); border-radius: 99px; height: 8px; overflow: hidden;">
+                    <div id="bulk-progress-bar" style="height: 100%; width: 0%; background: linear-gradient(90deg, #6366f1, #8b5cf6); border-radius: 99px; transition: width 0.4s ease;"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- RIGHT PANEL: DISPATCH MONITOR -->
+            <div class="dashboard-card">
+              <div class="card-header">
+                <h2>System Log Activity</h2>
+                <p>Real-time updates from background queues.</p>
+              </div>
+              <div class="console-box" id="system-console">
+                <div class="console-line system">[System] Connection established to remote DB Atlas.</div>
+                <div class="console-line system">[System] Scheduler is online & checking for drops every minute.</div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- RECENT EMAILS TABLE -->
+          <div class="dashboard-card margin-top">
+            <div class="card-header flex-header">
+              <div>
+                <h2>Recent Outreach Dispatches</h2>
+                <p>Audit trail of generated emails, drafts, and sends.</p>
+              </div>
+              <button class="btn btn-outline" id="btn-refresh-recent-emails">Refresh List</button>
+            </div>
+            <div class="table-container">
+              <table class="data-table" id="table-recent-emails">
+                <thead>
+                  <tr>
+                    <th>Recipient Email</th>
+                    <th>Outreach Type</th>
+                    <th>Subject Line</th>
+                    <th>Status</th>
+                    <th>Modified At</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- Filled dynamically by JavaScript -->
+                  <tr>
+                    <td colspan="6" class="text-center text-muted">No emails loaded. Click Refresh to reload.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- 2. RECIPIENTS VIEW -->
+        <section class="tab-panel" id="panel-recipients">
+          
+          <div class="dashboard-grid">
+            
+            <!-- LEFT AREA: LIST OF RECIPIENTS -->
+            <div class="dashboard-card card-double">
+              <div class="card-header flex-header">
+                <div>
+                  <h2>Manage Recipient Leads</h2>
+                  <p>All active outreach prospects in database.</p>
+                </div>
+                <div class="search-box">
+                  <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                  <input type="text" id="recipient-search" placeholder="Search by name, company, or email...">
+                </div>
+              </div>
+              
+              <div class="table-container">
+                <table class="data-table" id="table-recipients">
+                  <thead>
+                    <tr>
+                      <th>Company</th>
+                      <th>Contact Person</th>
+                      <th>Outreach Intent</th>
+                      <th>Website</th>
+                      <th>Research Status</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td colspan="6" class="text-center text-muted">No leads in the database. Please add below.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- RIGHT AREA: ADD RECIPIENTS BOX -->
+            <div class="dashboard-card">
+              <div class="card-header">
+                <h2>Add Prospects</h2>
+                <p>Register single leads or upload CSV spreadsheet lists in bulk.</p>
+              </div>
+
+              <!-- TABS WITHIN ADD DRAWER -->
+              <div class="add-methods-tabs">
+                <button class="method-tab active" id="btn-method-single">Single Lead</button>
+                <button class="method-tab" id="btn-method-bulk">Bulk List (CSV)</button>
+              </div>
+
+              <!-- SINGLE FORM -->
+              <form class="lead-form active" id="form-single-lead">
+                <div class="form-group">
+                  <label for="lead-company">Company Name *</label>
+                  <input type="text" id="lead-company" required placeholder="e.g. Razorpay">
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="lead-contact">Contact Name</label>
+                    <input type="text" id="lead-contact" placeholder="e.g. Harshil Mathur">
+                  </div>
+                  <div class="form-group">
+                    <label for="lead-title">Title</label>
+                    <input type="text" id="lead-title" placeholder="e.g. CEO">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="lead-email">Email Address *</label>
+                  <input type="email" id="lead-email" required placeholder="e.g. contact@company.com">
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="lead-website">Website URL</label>
+                    <input type="text" id="lead-website" placeholder="e.g. https://company.com">
+                  </div>
+                  <div class="form-group">
+                    <label for="lead-outreach">Intent</label>
+                    <select id="lead-outreach">
+                      <option value="partnership">Partnership</option>
+                      <option value="sales">Sales</option>
+                      <option value="startup_collab">Startup Collab</option>
+                      <option value="investor">Investor</option>
+                      <option value="networking">Networking</option>
+                      <option value="hiring">Hiring</option>
+                      <option value="internship">Internship</option>
+                      <option value="custom">Custom</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="lead-description">Manual Summary (Fallback Description)</label>
+                  <textarea id="lead-description" rows="2" placeholder="Brief details about what they do..."></textarea>
+                </div>
+                <button class="btn btn-indigo btn-block" type="submit">Register Lead</button>
+              </form>
+
+              <!-- BULK UPLOADER -->
+              <div class="lead-form" id="form-bulk-leads">
+                <div class="csv-drop-zone" id="csv-drop-zone">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+                  <p class="drop-text-main">Drag and drop your CSV file here</p>
+                  <p class="drop-text-sub">or click to browse local files</p>
+                  <input type="file" id="csv-file-input" accept=".csv" class="hidden-file-input">
+                </div>
+                <div class="csv-instructions">
+                  <p><strong>Required columns:</strong> <code>companyName</code>, <code>email</code></p>
+                  <p><strong>Optional columns:</strong> <code>contactName</code>, <code>contactTitle</code>, <code>website</code>, <code>outreachType</code>, <code>description</code></p>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+
+        </section>
+
+        <!-- 3. PROFILE SETTINGS VIEW -->
+        <section class="tab-panel" id="panel-settings">
+          
+          <div class="dashboard-card max-width-card">
+            <div class="card-header">
+              <h2>OnIT India Brand Profile</h2>
+              <p>Configure company context dynamically. Ollama reads these variables before drafting emails.</p>
+            </div>
+            
+            <form id="form-brand-profile">
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="profile-company">Company Name *</label>
+                  <input type="text" id="profile-company" required>
+                </div>
+                <div class="form-group flex-2">
+                  <label for="profile-tagline">Branding Tagline *</label>
+                  <input type="text" id="profile-tagline" required>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="profile-email">Sender Outbox Email *</label>
+                  <input type="email" id="profile-email" required>
+                </div>
+                <div class="form-group">
+                  <label for="profile-website">Sender Website URL *</label>
+                  <input type="text" id="profile-website" required>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="profile-about">About Us Narrative</label>
+                <textarea id="profile-about" rows="3" required></textarea>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="profile-mission">Mission Statement</label>
+                  <textarea id="profile-mission" rows="2" required></textarea>
+                </div>
+                <div class="form-group">
+                  <label for="profile-value">Core Value Proposition</label>
+                  <textarea id="profile-value" rows="2" required></textarea>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Offered Core Services (One per line)</label>
+                <textarea id="profile-services" rows="4" placeholder="Service Name: Service Description"></textarea>
+              </div>
+
+              <div class="form-group">
+                <label>Key Brand Differentiators (One per line)</label>
+                <textarea id="profile-differentiators" rows="4" placeholder="Bullet points..."></textarea>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="profile-sig-html">Email HTML Signature</label>
+                  <textarea id="profile-sig-html" rows="4" class="code-textarea"></textarea>
+                </div>
+                <div class="form-group">
+                  <label for="profile-sig-plain">Email Plain-Text Signature</label>
+                  <textarea id="profile-sig-plain" rows="4" class="code-textarea"></textarea>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="profile-tone-overall">Overall Tone Guidelines</label>
+                <input type="text" id="profile-tone-overall" required>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Phrases to Avoid (One per line)</label>
+                  <textarea id="profile-tone-avoid" rows="3" placeholder="Avoid list..."></textarea>
+                </div>
+                <div class="form-group">
+                  <label>Writing Style Preffered (One per line)</label>
+                  <textarea id="profile-tone-prefer" rows="3" placeholder="Prefer list..."></textarea>
+                </div>
+              </div>
+
+              <button class="btn btn-indigo" type="submit">Save Brand Changes</button>
+            </form>
+          </div>
+
+        </section>
+
+      </div>
+
+    </main>
+
+  </div>
+
+  <!-- MODAL: DYNAMIC CHECKLIST LOADING STATUS -->
+  <div class="modal-overlay" id="modal-loading-checklist">
+    <div class="modal-card loading-modal">
+      <h3>Generating AI Outreach Email</h3>
+      <p class="modal-sub">Calling local Ollama server running Llama 3...</p>
+      
+      <div class="checklist-container">
+        <div class="checklist-item pending" id="step-scrape">
+          <div class="check-indicator"></div>
+          <span>Scraping company website for insights</span>
+        </div>
+        <div class="checklist-item pending" id="step-context">
+          <div class="check-indicator"></div>
+          <span>Building brand prompt context profiles</span>
+        </div>
+        <div class="checklist-item pending" id="step-ai">
+          <div class="check-indicator"></div>
+          <span>Running Llama 3 model local inference</span>
+        </div>
+        <div class="checklist-item pending" id="step-parse">
+          <div class="check-indicator"></div>
+          <span>Parsing and saving formatted draft in DB</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: CSV COLUMN MAPPER -->
+  <div class="modal-overlay" id="modal-csv-mapper">
+    <div class="modal-card">
+      <div class="card-header">
+        <h2>Map CSV Column Headers</h2>
+        <p>Ensure your CSV headers map correctly to database fields.</p>
+      </div>
+      
+      <div class="csv-mapper-form">
+        <div class="mapper-row">
+          <label>Company Name Field *</label>
+          <select class="mapper-select" id="map-company"><option value="">-- Ignore --</option></select>
+        </div>
+        <div class="mapper-row">
+          <label>Email Field *</label>
+          <select class="mapper-select" id="map-email"><option value="">-- Ignore --</option></select>
+        </div>
+        <div class="mapper-row">
+          <label>Contact Name Field</label>
+          <select class="mapper-select" id="map-contact"><option value="">-- Ignore --</option></select>
+        </div>
+        <div class="mapper-row">
+          <label>Contact Title Field</label>
+          <select class="mapper-select" id="map-title"><option value="">-- Ignore --</option></select>
+        </div>
+        <div class="mapper-row">
+          <label>Website URL Field</label>
+          <select class="mapper-select" id="map-website"><option value="">-- Ignore --</option></select>
+        </div>
+        <div class="mapper-row">
+          <label>Outreach Intent Field</label>
+          <select class="mapper-select" id="map-outreach"><option value="">-- Ignore --</option></select>
+        </div>
+        <div class="mapper-row">
+          <label>Manual Description Field</label>
+          <select class="mapper-select" id="map-desc"><option value="">-- Ignore --</option></select>
+        </div>
+      </div>
+
+      <div class="csv-preview-box">
+        <h4>CSV File Rows Preview</h4>
+        <div class="csv-preview-table-container">
+          <table class="csv-preview-table" id="table-csv-preview">
+            <thead></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-outline" id="btn-csv-cancel">Cancel</button>
+        <button class="btn btn-indigo" id="btn-csv-confirm">Upload Recipient List</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT SIDE DRAWER: EMAIL COMPOSER -->
+  <div class="drawer-overlay" id="drawer-composer">
+    <div class="drawer-container">
+      
+      <div class="drawer-header">
+        <div class="drawer-title-box">
+          <span class="drawer-pretitle">Email Review Draft</span>
+          <h2 id="drawer-recipient-name">Company Name</h2>
+        </div>
+        <button class="btn-close-drawer" id="btn-close-drawer">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+
+      <div class="drawer-body">
+        
+        <!-- COMPOSER FIELDS -->
+        <div class="composer-field">
+          <label>Send To</label>
+          <input type="text" id="composer-to" readonly class="input-readonly">
+        </div>
+        
+        <div class="composer-field">
+          <label for="composer-subject">Subject Line</label>
+          <input type="text" id="composer-subject" placeholder="Enter subject line...">
+        </div>
+
+        <div class="composer-field flex-grow-field">
+          <label for="composer-body">Email Body (HTML/Plain Text Editor)</label>
+          <textarea id="composer-body" placeholder="Writing custom email..."></textarea>
+        </div>
+
+        <!-- ACCORDION: PERSONALIZATION NOTES & PROMPTS -->
+        <div class="drawer-accordion">
+          <div class="accordion-header" id="accordion-btn-notes">
+            <span>AI Personalization Insights</span>
+            <svg class="accordion-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div class="accordion-content" id="accordion-content-notes">
+            <p id="composer-notes" class="text-muted italic">No personalization insights provided by local AI.</p>
+          </div>
+        </div>
+
+        <div class="drawer-accordion">
+          <div class="accordion-header" id="accordion-btn-prompt">
+            <span>Raw Prompt Details</span>
+            <svg class="accordion-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div class="accordion-content" id="accordion-content-prompt">
+            <pre id="composer-prompt" class="prompt-preview"></pre>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="drawer-footer">
+        <button class="btn btn-outline" id="btn-drawer-cancel">Cancel</button>
+        <button class="btn btn-indigo" id="btn-drawer-save">Save Changes</button>
+        <button class="btn btn-emerald" id="btn-drawer-send">Send Email Draft</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL: CUSTOM CONFIRMATION -->
+  <div class="modal-overlay" id="modal-confirm">
+    <div class="modal-card loading-modal" style="width: 400px;">
+      <h3 id="confirm-title" style="margin-bottom: 8px;">Confirm Action</h3>
+      <p id="confirm-message" class="modal-sub" style="margin-bottom: 24px;">Are you sure you want to proceed?</p>
+      <div class="modal-actions">
+        <button class="btn btn-outline" id="btn-confirm-cancel">Cancel</button>
+        <button class="btn btn-rose" id="btn-confirm-ok" style="background-color: var(--color-rose); color: white;">Delete</button>
+      </div>
+    </div>
+  </div>
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- JavaScript Logics -->
+  <script src="app.js"></script>
+</body>
+</html>
