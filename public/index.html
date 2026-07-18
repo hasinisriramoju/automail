@@ -130,16 +130,31 @@
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
                     Start Bulk Send Dispatch
                   </button>
+                  <button class="btn btn-outline" id="btn-retry-failed" style="display:none;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>
+                    Retry Failed
+                  </button>
                  </div>
 
-                <!-- Bulk Progress Bar (hidden until generation starts) -->
+                <!-- Bulk Generation Progress Bar -->
                 <div id="bulk-progress-wrap" style="display:none; margin-top: 16px;">
                   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                    <span id="bulk-progress-label" style="font-size: 12px; font-weight: 600; color: var(--text-normal);">Generating drafts...</span>
+                    <span id="bulk-progress-label" style="font-size: 12px; font-weight: 600; color: var(--text-muted);">Generating drafts...</span>
                     <span id="bulk-progress-count" style="font-size: 12px; color: var(--text-muted);">0 / 0</span>
                   </div>
                   <div style="background: var(--border-color); border-radius: 99px; height: 8px; overflow: hidden;">
                     <div id="bulk-progress-bar" style="height: 100%; width: 0%; background: linear-gradient(90deg, #6366f1, #8b5cf6); border-radius: 99px; transition: width 0.4s ease;"></div>
+                  </div>
+                </div>
+
+                <!-- Bulk Send Progress Bar -->
+                <div id="send-progress-wrap" style="display:none; margin-top: 12px;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                    <span id="send-progress-label" style="font-size: 12px; font-weight: 600; color: var(--text-muted);">Dispatching emails...</span>
+                    <span id="send-progress-count" style="font-size: 12px; color: var(--text-muted);">0 / 0</span>
+                  </div>
+                  <div style="background: var(--border-color); border-radius: 99px; height: 8px; overflow: hidden;">
+                    <div id="send-progress-bar" style="height: 100%; width: 0%; background: linear-gradient(90deg, #10b981, #059669); border-radius: 99px; transition: width 0.4s ease;"></div>
                   </div>
                 </div>
               </div>
@@ -159,6 +174,30 @@
 
           </div>
 
+          <!-- ANALYTICS ROW -->
+          <div class="analytics-row margin-top">
+            <div class="analytics-card">
+              <div class="analytics-label">Delivery Rate</div>
+              <div class="analytics-value" id="analytics-rate">—</div>
+              <div class="analytics-bar-track"><div class="analytics-bar-fill" id="analytics-bar" style="width:0%"></div></div>
+            </div>
+            <div class="analytics-card">
+              <div class="analytics-label">Total Recipients</div>
+              <div class="analytics-value" id="analytics-total-recipients">0</div>
+              <div class="analytics-sub">in database</div>
+            </div>
+            <div class="analytics-card">
+              <div class="analytics-label">Emails Generated</div>
+              <div class="analytics-value" id="analytics-total-emails">0</div>
+              <div class="analytics-sub">all time</div>
+            </div>
+            <div class="analytics-card">
+              <div class="analytics-label">Failed / Bounced</div>
+              <div class="analytics-value text-rose" id="analytics-failed">0</div>
+              <div class="analytics-sub">needs retry</div>
+            </div>
+          </div>
+
           <!-- RECENT EMAILS TABLE -->
           <div class="dashboard-card margin-top">
             <div class="card-header flex-header">
@@ -166,7 +205,16 @@
                 <h2>Recent Outreach Dispatches</h2>
                 <p>Audit trail of generated emails, drafts, and sends.</p>
               </div>
-              <button class="btn btn-outline" id="btn-refresh-recent-emails">Refresh List</button>
+              <div style="display:flex; gap:8px; align-items:center;">
+                <!-- Filter Tabs -->
+                <div class="email-filter-tabs">
+                  <button class="filter-tab active" data-filter="all" id="filter-all">All</button>
+                  <button class="filter-tab" data-filter="draft" id="filter-draft">Drafts <span class="filter-count" id="count-draft">0</span></button>
+                  <button class="filter-tab" data-filter="sent" id="filter-sent">Sent <span class="filter-count" id="count-sent">0</span></button>
+                  <button class="filter-tab" data-filter="failed" id="filter-failed">Failed <span class="filter-count" id="count-failed">0</span></button>
+                </div>
+                <button class="btn btn-outline" id="btn-refresh-recent-emails">Refresh</button>
+              </div>
             </div>
             <div class="table-container">
               <table class="data-table" id="table-recent-emails">
@@ -407,11 +455,33 @@
 
   </div>
 
+  <!-- MODAL: EMAIL PREVIEW -->
+  <div class="modal-overlay" id="modal-email-preview">
+    <div class="modal-card" style="width: 680px; max-width: 95vw; max-height: 85vh; overflow-y: auto;">
+      <div class="card-header flex-header" style="margin-bottom: 16px;">
+        <div>
+          <h2 id="preview-modal-subject" style="font-size:16px;">Email Preview</h2>
+          <p id="preview-modal-to" class="text-muted" style="font-size:12px;"></p>
+        </div>
+        <button class="btn-close-drawer" id="btn-close-preview">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div id="preview-modal-body" style="border:1px solid var(--border-color); border-radius: var(--radius-md); background: #fff; overflow: hidden;">
+        <iframe id="preview-iframe" style="width:100%; height:480px; border:none; display:block;"></iframe>
+      </div>
+      <div class="modal-actions" style="margin-top:16px;">
+        <button class="btn btn-outline" id="btn-preview-close-bottom">Close</button>
+        <button class="btn btn-emerald" id="btn-preview-send">Send This Email</button>
+      </div>
+    </div>
+  </div>
+
   <!-- MODAL: DYNAMIC CHECKLIST LOADING STATUS -->
   <div class="modal-overlay" id="modal-loading-checklist">
     <div class="modal-card loading-modal">
       <h3>Generating AI Outreach Email</h3>
-      <p class="modal-sub">Calling local Ollama server running Llama 3...</p>
+      <p class="modal-sub">Running Groq AI (llama-3.1-8b-instant)...</p>
       
       <div class="checklist-container">
         <div class="checklist-item pending" id="step-scrape">
@@ -424,7 +494,7 @@
         </div>
         <div class="checklist-item pending" id="step-ai">
           <div class="check-indicator"></div>
-          <span>Running Llama 3 model local inference</span>
+          <span>Running Groq AI (llama-3.1-instant) inference</span>
         </div>
         <div class="checklist-item pending" id="step-parse">
           <div class="check-indicator"></div>

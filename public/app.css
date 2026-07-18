@@ -1111,3 +1111,115 @@ textarea {
   max-width: 900px;
   margin: 0 auto;
 }
+
+/* ─── ANALYTICS ROW ──────────────────────────────────────────────────────── */
+.analytics-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.analytics-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: border-color 0.15s ease;
+}
+
+.analytics-card:hover {
+  border-color: var(--border-hover);
+}
+
+.analytics-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
+.analytics-value {
+  font-size: 28px;
+  font-weight: 700;
+  font-family: var(--font-display);
+  color: var(--text-main);
+  line-height: 1.1;
+}
+
+.analytics-sub {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.analytics-bar-track {
+  height: 4px;
+  background: var(--border-color);
+  border-radius: 99px;
+  overflow: hidden;
+  margin-top: 8px;
+}
+
+.analytics-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--color-emerald), #059669);
+  border-radius: 99px;
+  transition: width 0.6s ease;
+}
+
+/* ─── EMAIL FILTER TABS ──────────────────────────────────────────────────── */
+.email-filter-tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--bg-input);
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+}
+
+.filter-tab {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 5px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.filter-tab:hover {
+  color: var(--text-main);
+  background: var(--bg-card);
+}
+
+.filter-tab.active {
+  background: var(--bg-card);
+  color: var(--color-indigo);
+  font-weight: 600;
+  box-shadow: var(--shadow-sm);
+}
+
+.filter-count {
+  background: var(--border-color);
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 99px;
+  min-width: 18px;
+  text-align: center;
+}
+
+.filter-tab.active .filter-count {
+  background: var(--color-indigo-muted);
+  color: var(--color-indigo);
+}

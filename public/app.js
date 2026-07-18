@@ -4,10 +4,13 @@ document.addEventListener('DOMContentLoaded', () => {
   let state = {
     recipients: [],
     emails: [],
+    allEmails: [],
     profile: {},
     activeTab: 'dashboard',
     parsedCsvData: null,
-    currentEditingEmailId: null
+    currentEditingEmailId: null,
+    activeEmailFilter: 'all',
+    previewEmailId: null,
   };
 
   const API_BASE = '/api';
@@ -48,6 +51,16 @@ document.addEventListener('DOMContentLoaded', () => {
   const campaignHint = document.getElementById('campaign-hint');
   const btnCampaignGenerate = document.getElementById('btn-campaign-generate');
   const btnCampaignSend = document.getElementById('btn-campaign-send');
+  const btnRetryFailed = document.getElementById('btn-retry-failed');
+
+  // Email Preview Modal
+  const modalEmailPreview = document.getElementById('modal-email-preview');
+  const previewModalSubject = document.getElementById('preview-modal-subject');
+  const previewModalTo = document.getElementById('preview-modal-to');
+  const previewIframe = document.getElementById('preview-iframe');
+  const btnClosePreview = document.getElementById('btn-close-preview');
+  const btnPreviewCloseBottom = document.getElementById('btn-preview-close-bottom');
+  const btnPreviewSend = document.getElementById('btn-preview-send');
 
   // Add Recipients Tab Switchers
   const btnMethodSingle = document.getElementById('btn-method-single');
@@ -158,7 +171,71 @@ document.addEventListener('DOMContentLoaded', () => {
     btnCloseDrawer.addEventListener('click', closeComposerDrawer);
     btnDrawerCancel.addEventListener('click', closeComposerDrawer);
 
-    // Event delegation for Recipients Table actions
+    // Email Preview Modal close buttons
+    if (btnClosePreview) btnClosePreview.addEventListener('click', () => modalEmailPreview.classList.remove('active'));
+    if (btnPreviewCloseBottom) btnPreviewCloseBottom.addEventListener('click', () => modalEmailPreview.classList.remove('active'));
+    if (btnPreviewSend) {
+      btnPreviewSend.addEventListener('click', async () => {
+        if (!state.previewEmailId) return;
+        modalEmailPreview.classList.remove('active');
+        const id = state.previewEmailId;
+        logToConsole(`[SMTP] Sending previewed email ID: ${id}`);
+        showToast('Sending email...', 'info');
+        try {
+          const res = await fetch(`${API_BASE}/emails/${id}/send`, { method: 'POST' });
+          const data = await res.json();
+          if (data.success) {
+            showToast('Email sent successfully!', 'success');
+            logToConsole(`[SMTP] ✓ Delivered: ${data.data?.recipientId?.email || 'recipient'}`);
+          } else {
+            showToast(`Delivery failed: ${data.error}`, 'error');
+            logToConsole(`[SMTP] ✗ Failed: ${data.error}`, 'error');
+          }
+          fetchRecentEmails(); fetchStats();
+        } catch (err) {
+          showToast('Network error during delivery', 'error');
+        }
+      });
+    }
+
+    // Filter Tabs
+    document.querySelectorAll('.filter-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        applyEmailFilter(tab.dataset.filter);
+      });
+    });
+
+    // Retry All Failed Button
+    if (btnRetryFailed) {
+      btnRetryFailed.addEventListener('click', async () => {
+        const failedEmails = state.allEmails.filter(e => e.status === 'failed');
+        if (failedEmails.length === 0) { showToast('No failed emails to retry.', 'info'); return; }
+        showCustomConfirm(
+          'Retry All Failed Emails',
+          `Retry sending ${failedEmails.length} failed email(s)?`,
+          'Retry All',
+          async () => {
+            logToConsole(`[SMTP] Retrying ${failedEmails.length} failed emails...`);
+            let successCount = 0, failCount = 0;
+            for (const e of failedEmails) {
+              const emailAddress = e.recipientId?.email || 'N/A';
+              try {
+                const res = await fetch(`${API_BASE}/emails/${e._id}/send`, { method: 'POST' });
+                const data = await res.json();
+                if (data.success) { successCount++; logToConsole(`[SMTP] ✓ Retry success: ${emailAddress}`); }
+                else { failCount++; logToConsole(`[SMTP] ✗ Retry failed: ${emailAddress}: ${data.error}`, 'error'); }
+              } catch { failCount++; }
+              await new Promise(r => setTimeout(r, 2000));
+            }
+            logToConsole(`[SMTP] Retry complete. Success: ${successCount}, Failed: ${failCount}`);
+            showToast(`Retry done: ${successCount} sent, ${failCount} failed`, successCount > 0 ? 'success' : 'error');
+            fetchRecentEmails(); fetchStats();
+          }
+        );
+      });
+    }
+
+    // Event delegation for Recent Emails Table actions
     tableRecipients.addEventListener('click', async (e) => {
       const genBtn = e.target.closest('.btn-generate-recipient-email');
       if (genBtn) {
@@ -204,6 +281,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Event delegation for Recent Emails Table actions
     tableRecentEmails.addEventListener('click', async (e) => {
+      // Preview button
+      const previewBtn = e.target.closest('[title="Preview Email"]');
+      if (previewBtn) {
+        e.preventDefault();
+        const id = previewBtn.getAttribute('data-id');
+        const emailData = state.allEmails.find(em => em._id === id);
+        if (emailData) {
+          state.previewEmailId = id;
+          previewModalSubject.textContent = emailData.subject || 'Email Preview';
+          previewModalTo.textContent = `To: ${emailData.recipientId?.email || ''} — ${emailData.recipientId?.companyName || ''}`;
+          // Render HTML in iframe
+          const iframeDoc = previewIframe.contentDocument || previewIframe.contentWindow.document;
+          iframeDoc.open();
+          iframeDoc.write(emailData.bodyHtml || `<p style="font-family:sans-serif;padding:24px;">${emailData.bodyText || 'No email body.'}</p>`);
+          iframeDoc.close();
+          // Hide send button if already sent
+          btnPreviewSend.style.display = emailData.status === 'sent' ? 'none' : 'inline-flex';
+          modalEmailPreview.classList.add('active');
+        }
+        return;
+      }
       const openBtn = e.target.closest('.btn-open-composer');
       if (openBtn) {
         e.preventDefault();
@@ -379,16 +477,46 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await res.json();
       if (data.success) {
         const byStatus = data.data.byStatus || {};
-        statSent.textContent      = byStatus.sent     || 0;
-        statDrafts.textContent    = byStatus.draft    || 0;
-        statFailed.textContent    = byStatus.failed   || 0;
-        statProcessing.textContent = byStatus.sending || 0;
+        const total = data.data.total || 0;
+        const sentCount   = byStatus.sent     || 0;
+        const draftCount  = byStatus.draft    || 0;
+        const failedCount = byStatus.failed   || 0;
+        const sendingCount= byStatus.sending  || 0;
 
-        // Enable Send Bulk button when there are drafts ready
-        if ((byStatus.draft || 0) > 0) {
+        statSent.textContent       = sentCount;
+        statDrafts.textContent     = draftCount;
+        statFailed.textContent     = failedCount;
+        statProcessing.textContent = sendingCount;
+
+        // Analytics row
+        const rate = total > 0 ? Math.round((sentCount / total) * 100) : 0;
+        const analyticsRate = document.getElementById('analytics-rate');
+        const analyticsBar  = document.getElementById('analytics-bar');
+        const analyticsFailed = document.getElementById('analytics-failed');
+        const analyticsTotalEmails = document.getElementById('analytics-total-emails');
+        if (analyticsRate) analyticsRate.textContent = total > 0 ? `${rate}%` : '—';
+        if (analyticsBar)  analyticsBar.style.width = `${rate}%`;
+        if (analyticsFailed) analyticsFailed.textContent = failedCount;
+        if (analyticsTotalEmails) analyticsTotalEmails.textContent = total;
+
+        // Filter counts
+        const countDraft  = document.getElementById('count-draft');
+        const countSent   = document.getElementById('count-sent');
+        const countFailed = document.getElementById('count-failed');
+        if (countDraft)  countDraft.textContent  = draftCount;
+        if (countSent)   countSent.textContent   = sentCount;
+        if (countFailed) countFailed.textContent = failedCount;
+
+        // Enable Send button when there are drafts or failed emails ready to retry
+        if (draftCount > 0) {
           btnCampaignSend.removeAttribute('disabled');
         } else {
           btnCampaignSend.setAttribute('disabled', 'true');
+        }
+
+        // Show/hide Retry Failed button
+        if (btnRetryFailed) {
+          btnRetryFailed.style.display = failedCount > 0 ? 'flex' : 'none';
         }
       }
     } catch (err) {
@@ -421,6 +549,9 @@ document.addEventListener('DOMContentLoaded', () => {
         state.recipients = data.data;
         renderRecipientsTable(data.data);
         populateCampaignDropdown(data.data);
+        // Update analytics total recipients
+        const el = document.getElementById('analytics-total-recipients');
+        if (el) el.textContent = data.data.length;
       }
     } catch (err) {
       console.error('Error loading recipients:', err);
@@ -433,12 +564,27 @@ document.addEventListener('DOMContentLoaded', () => {
       const res = await fetch(`${API_BASE}/emails`);
       const data = await res.json();
       if (data.success) {
+        state.allEmails = data.data;
         state.emails = data.data;
-        renderRecentEmailsTable(data.data);
+        applyEmailFilter(state.activeEmailFilter);
       }
     } catch (err) {
       console.error('Error loading recent emails:', err);
     }
+  }
+
+  function applyEmailFilter(filter) {
+    state.activeEmailFilter = filter;
+    let filtered = state.allEmails;
+    if (filter !== 'all') {
+      filtered = state.allEmails.filter(e => e.status === filter);
+    }
+    state.emails = filtered;
+    renderRecentEmailsTable(filtered);
+    // Update active tab styling
+    document.querySelectorAll('.filter-tab').forEach(t => {
+      t.classList.toggle('active', t.dataset.filter === filter);
+    });
   }
 
   // ─── RENDERING DATA ──────────────────────────────────────────────────────────
@@ -487,7 +633,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderRecentEmailsTable(emails) {
     tableRecentEmails.innerHTML = '';
     if (emails.length === 0) {
-      tableRecentEmails.innerHTML = `<tr><td colspan="6" class="text-center text-muted">No emails generated yet.</td></tr>`;
+      tableRecentEmails.innerHTML = `<tr><td colspan="6" class="text-center text-muted">No emails found.</td></tr>`;
       return;
     }
 
@@ -498,7 +644,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (e.status === 'sent') {
         statusBadge = `<span class="badge badge-sent">Sent</span>`;
       } else if (e.status === 'failed') {
-        statusBadge = `<span class="badge badge-failed" title="${escapeHtml(e.error || '')}">Failed</span>`;
+        statusBadge = `<span class="badge badge-failed" title="${escapeHtml(e.error || '')}">Failed ↻</span>`;
       } else if (e.status === 'sending') {
         statusBadge = `<span class="badge badge-processing">Sending</span>`;
       } else {
@@ -512,11 +658,14 @@ document.addEventListener('DOMContentLoaded', () => {
         <td>${statusBadge}</td>
         <td class="text-muted" style="font-size:12px;">${formattedDate}</td>
         <td class="actions-cell">
+          <button class="btn-icon" style="color:var(--color-indigo);" title="Preview Email" class="btn-preview-email" data-id="${e._id}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
           <button class="btn-icon info btn-open-composer" data-id="${e._id}" title="Review & Edit Draft">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4z"/></svg>
           </button>
           ${e.status !== 'sent' ? `
-          <button class="btn-icon success btn-send-now" data-id="${e._id}" title="Send Email Immediately">
+          <button class="btn-icon success btn-send-now" data-id="${e._id}" title="${e.status === 'failed' ? 'Retry Sending' : 'Send Email Immediately'}">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
           </button>
           ` : ''}
@@ -788,7 +937,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 4. Campaign Bulk Send Dispatch Button
     btnCampaignSend.addEventListener('click', async () => {
-      const draftEmails = state.emails.filter(e => e.status === 'draft');
+      const draftEmails = state.allEmails.filter(e => e.status === 'draft');
       if (draftEmails.length === 0) {
         showToast('No pending drafts ready to send.', 'error');
         return;
@@ -800,7 +949,21 @@ document.addEventListener('DOMContentLoaded', () => {
         "Send All", 
         async () => {
           btnCampaignSend.setAttribute('disabled', 'true');
-          logToConsole(`[SMTP] Bulk dispatch starting for ${draftEmails.length} emails. Delay set to 3s between sends.`);
+
+          // Show send progress bar
+          const sendWrap  = document.getElementById('send-progress-wrap');
+          const sendBar   = document.getElementById('send-progress-bar');
+          const sendLabel = document.getElementById('send-progress-label');
+          const sendCount = document.getElementById('send-progress-count');
+          const total = draftEmails.length;
+
+          sendWrap.style.display = 'block';
+          sendBar.style.width = '0%';
+          sendBar.style.background = 'linear-gradient(90deg, #10b981, #059669)';
+          sendLabel.textContent = 'Dispatching emails...';
+          sendCount.textContent = `0 / ${total}`;
+
+          logToConsole(`[SMTP] Bulk dispatch starting for ${draftEmails.length} emails.`);
           showToast('SMTP bulk dispatch started...', 'info');
 
           let successCount = 0;
@@ -809,6 +972,7 @@ document.addEventListener('DOMContentLoaded', () => {
           for (let i = 0; i < draftEmails.length; i++) {
             const e = draftEmails[i];
             const emailAddress = e.recipientId?.email || 'N/A';
+            sendLabel.textContent = `Sending to: ${emailAddress}...`;
             logToConsole(`[SMTP] [${i+1}/${draftEmails.length}] Sending to: ${emailAddress}`);
 
             try {
@@ -826,20 +990,33 @@ document.addEventListener('DOMContentLoaded', () => {
               logToConsole(`[SMTP] ✗ Network error for ${emailAddress}`, 'error');
             }
 
+            const pct = Math.round(((i + 1) / total) * 100);
+            sendBar.style.width = `${pct}%`;
+            sendCount.textContent = `${i + 1} / ${total}`;
             fetchStats();
             fetchRecentEmails();
 
-            // Throttling delay between sends (3 seconds)
             if (i < draftEmails.length - 1) {
               await new Promise(r => setTimeout(r, 3000));
             }
           }
+
+          const allOk = failCount === 0;
+          sendBar.style.width = '100%';
+          sendBar.style.background = allOk
+            ? 'linear-gradient(90deg, #10b981, #059669)'
+            : 'linear-gradient(90deg, #f59e0b, #d97706)';
+          sendLabel.textContent = allOk
+            ? `✓ All ${successCount} emails dispatched!`
+            : `Done — ${successCount} sent, ${failCount} failed`;
 
           btnCampaignSend.removeAttribute('disabled');
           logToConsole(`[SMTP] Bulk send completed. Successes: ${successCount}, Failures: ${failCount}`);
           showToast(`Campaign dispatch finished: ${successCount} sent, ${failCount} failed`, 'success');
           fetchRecentEmails();
           fetchStats();
+
+          setTimeout(() => { sendWrap.style.display = 'none'; }, 5000);
         }
       );
     });

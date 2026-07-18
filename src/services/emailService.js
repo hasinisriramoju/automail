@@ -29,6 +29,7 @@ const sendEmailById = async (emailId) => {
 
   if (email.status === 'sent') throw new Error('This email has already been sent');
   if (email.status === 'sending') throw new Error('This email is currently being sent');
+  // Note: 'failed' emails ARE allowed to be retried
 
   return sendEmail(email);
 };
