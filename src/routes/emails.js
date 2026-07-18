@@ -14,6 +14,7 @@ const {
   deleteEmail,
   generateFollowUp,
   getStats,
+  trackOpen,
 } = require('../controllers/emailController');
 const { validate, schemas } = require('../middleware/validateRequest');
 const { aiGenerateLimiter, emailSendLimiter } = require('../middleware/rateLimiter');
@@ -36,5 +37,8 @@ router.post('/:id/schedule', validate(schemas.scheduleEmail), schedule);
 
 // Follow-up
 router.post('/:id/followup', aiGenerateLimiter, generateFollowUp);
+
+// Open tracking pixel (no auth, no rate limit — must be lightweight)
+router.get('/track/open/:id', trackOpen);
 
 module.exports = router;

@@ -22,6 +22,17 @@ if (useResend) {
   logger.info('[Email] Provider: Nodemailer SMTP (fallback)');
 }
 
+// ─── Tracking pixel injector ───────────────────────────────────────────────
+const buildTrackedHtml = (emailId, bodyHtml) => {
+  const baseUrl = process.env.APP_URL || 'https://automail.onrender.com';
+  const pixel = `<img src="${baseUrl}/api/emails/track/open/${emailId}" width="1" height="1" style="display:none;border:0;" alt="" />`;
+  // Inject before closing </body> if present, otherwise append
+  if (bodyHtml && bodyHtml.includes('</body>')) {
+    return bodyHtml.replace('</body>', `${pixel}</body>`);
+  }
+  return (bodyHtml || '') + pixel;
+};
+
 // ─── sendEmailById ─────────────────────────────────────────────────────────
 const sendEmailById = async (emailId) => {
   const email = await Email.findById(emailId).populate('recipientId');
@@ -94,7 +105,7 @@ const sendViaResend = async (email, recipient) => {
       from:     `${senderName} <${senderEmail}>`,
       to:       [toAddress],
       subject:  email.subject,
-      html:     email.bodyHtml,
+      html:     buildTrackedHtml(email._id, email.bodyHtml),
       text:     email.bodyText,
       reply_to: `${senderName} <${senderEmail}>`,
       tags: [
@@ -124,7 +135,7 @@ const sendViaNodmailer = async (email, recipient) => {
     from:    `"${senderName}" <${senderEmail}>`,
     to:      recipient.contactName ? `"${recipient.contactName}" <${recipient.email}>` : recipient.email,
     subject: email.subject,
-    html:    email.bodyHtml,
+    html:    buildTrackedHtml(email._id, email.bodyHtml),
     text:    email.bodyText,
     replyTo: `"${senderName}" <${senderEmail}>`,
     headers: {

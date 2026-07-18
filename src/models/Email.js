@@ -102,8 +102,9 @@ const EmailSchema = new mongoose.Schema(
       default: 0,
     },
 
-    // ─── Future: Engagement Tracking (webhook-driven) ─────────────────────
+    // ─── Engagement Tracking ──────────────────────────────────────────────
     openedAt: Date,
+    openCount: { type: Number, default: 0 },
     repliedAt: Date,
     clickedAt: Date,
     messageId: String,  // SMTP message ID for tracking

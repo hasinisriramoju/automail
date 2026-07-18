@@ -201,9 +201,28 @@ document.addEventListener('DOMContentLoaded', () => {
     // Filter Tabs
     document.querySelectorAll('.filter-tab').forEach(tab => {
       tab.addEventListener('click', () => {
-        applyEmailFilter(tab.dataset.filter);
+        applyEmailFilter(tab.dataset.filter, document.getElementById('email-search')?.value || '');
       });
     });
+
+    // Email Search
+    const emailSearchInput = document.getElementById('email-search');
+    if (emailSearchInput) {
+      let searchTimer;
+      emailSearchInput.addEventListener('input', () => {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(() => {
+          applyEmailFilter(state.activeEmailFilter, emailSearchInput.value);
+        }, 300);
+      });
+    }
+
+    // Auto-refresh every 30 seconds
+    setInterval(() => {
+      fetchStats();
+      fetchRecentEmails();
+      logToConsole('[System] Auto-refreshed stats and email list.');
+    }, 30000);
 
     // Retry All Failed Button
     if (btnRetryFailed) {
@@ -291,15 +310,43 @@ document.addEventListener('DOMContentLoaded', () => {
           state.previewEmailId = id;
           previewModalSubject.textContent = emailData.subject || 'Email Preview';
           previewModalTo.textContent = `To: ${emailData.recipientId?.email || ''} — ${emailData.recipientId?.companyName || ''}`;
-          // Render HTML in iframe
           const iframeDoc = previewIframe.contentDocument || previewIframe.contentWindow.document;
           iframeDoc.open();
           iframeDoc.write(emailData.bodyHtml || `<p style="font-family:sans-serif;padding:24px;">${emailData.bodyText || 'No email body.'}</p>`);
           iframeDoc.close();
-          // Hide send button if already sent
           btnPreviewSend.style.display = emailData.status === 'sent' ? 'none' : 'inline-flex';
           modalEmailPreview.classList.add('active');
         }
+        return;
+      }
+
+      // Follow-up button
+      const followUpBtn = e.target.closest('.btn-followup');
+      if (followUpBtn) {
+        e.preventDefault();
+        const id = followUpBtn.getAttribute('data-id');
+        const emailData = state.allEmails.find(em => em._id === id);
+        showCustomConfirm(
+          'Generate Follow-Up Email',
+          `Generate a polite follow-up email to ${emailData?.recipientId?.companyName || 'this recipient'}?`,
+          'Generate Follow-Up',
+          async () => {
+            showToast('Generating follow-up email...', 'info');
+            logToConsole(`[AI] Generating follow-up for email ${id}`);
+            try {
+              const res = await fetch(`${API_BASE}/emails/${id}/followup`, { method: 'POST',
+                headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) });
+              const data = await res.json();
+              if (data.success) {
+                showToast('Follow-up draft created! Check the Drafts tab.', 'success');
+                logToConsole(`[AI] ✓ Follow-up draft created: ${data.data._id}`);
+                fetchRecentEmails(); fetchStats();
+              } else {
+                showToast(`Failed: ${data.error}`, 'error');
+              }
+            } catch { showToast('Network error generating follow-up', 'error'); }
+          }
+        );
         return;
       }
       const openBtn = e.target.closest('.btn-open-composer');
@@ -482,6 +529,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const draftCount  = byStatus.draft    || 0;
         const failedCount = byStatus.failed   || 0;
         const sendingCount= byStatus.sending  || 0;
+        const openedCount = data.data.opened  || 0;
 
         statSent.textContent       = sentCount;
         statDrafts.textContent     = draftCount;
@@ -490,24 +538,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Analytics row
         const rate = total > 0 ? Math.round((sentCount / total) * 100) : 0;
-        const analyticsRate = document.getElementById('analytics-rate');
-        const analyticsBar  = document.getElementById('analytics-bar');
-        const analyticsFailed = document.getElementById('analytics-failed');
+        const analyticsRate    = document.getElementById('analytics-rate');
+        const analyticsBar     = document.getElementById('analytics-bar');
+        const analyticsFailed  = document.getElementById('analytics-failed');
+        const analyticsOpened  = document.getElementById('analytics-opened');
         const analyticsTotalEmails = document.getElementById('analytics-total-emails');
-        if (analyticsRate) analyticsRate.textContent = total > 0 ? `${rate}%` : '—';
-        if (analyticsBar)  analyticsBar.style.width = `${rate}%`;
+        if (analyticsRate)   analyticsRate.textContent  = total > 0 ? `${rate}%` : '—';
+        if (analyticsBar)    analyticsBar.style.width   = `${rate}%`;
         if (analyticsFailed) analyticsFailed.textContent = failedCount;
+        if (analyticsOpened) analyticsOpened.textContent = openedCount;
         if (analyticsTotalEmails) analyticsTotalEmails.textContent = total;
 
         // Filter counts
         const countDraft  = document.getElementById('count-draft');
         const countSent   = document.getElementById('count-sent');
         const countFailed = document.getElementById('count-failed');
+        const countOpened = document.getElementById('count-opened');
         if (countDraft)  countDraft.textContent  = draftCount;
         if (countSent)   countSent.textContent   = sentCount;
         if (countFailed) countFailed.textContent = failedCount;
+        if (countOpened) countOpened.textContent = openedCount;
 
-        // Enable Send button when there are drafts or failed emails ready to retry
+        // Enable Send button when there are drafts ready
         if (draftCount > 0) {
           btnCampaignSend.removeAttribute('disabled');
         } else {
@@ -573,12 +625,27 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  function applyEmailFilter(filter) {
+  function applyEmailFilter(filter, searchQuery = '') {
     state.activeEmailFilter = filter;
+    const query = searchQuery.toLowerCase();
     let filtered = state.allEmails;
-    if (filter !== 'all') {
-      filtered = state.allEmails.filter(e => e.status === filter);
+
+    // Status filter
+    if (filter === 'opened') {
+      filtered = filtered.filter(e => e.openCount > 0);
+    } else if (filter !== 'all') {
+      filtered = filtered.filter(e => e.status === filter);
     }
+
+    // Text search
+    if (query) {
+      filtered = filtered.filter(e =>
+        (e.subject || '').toLowerCase().includes(query) ||
+        (e.recipientId?.email || '').toLowerCase().includes(query) ||
+        (e.recipientId?.companyName || '').toLowerCase().includes(query)
+      );
+    }
+
     state.emails = filtered;
     renderRecentEmailsTable(filtered);
     // Update active tab styling
@@ -640,15 +707,18 @@ document.addEventListener('DOMContentLoaded', () => {
     emails.forEach(e => {
       const tr = document.createElement('tr');
       const formattedDate = new Date(e.updatedAt || e.createdAt).toLocaleString();
+      const wasOpened = (e.openCount || 0) > 0;
       let statusBadge = '';
       if (e.status === 'sent') {
         statusBadge = `<span class="badge badge-sent">Sent</span>`;
+        if (wasOpened) statusBadge += ` <span class="badge badge-opened" title="Opened ${e.openCount} time(s)">👁 Opened</span>`;
       } else if (e.status === 'failed') {
-        statusBadge = `<span class="badge badge-failed" title="${escapeHtml(e.error || '')}">Failed ↻</span>`;
+        statusBadge = `<span class="badge badge-failed" title="${escapeHtml(e.error || '')}">Failed &#x21BB;</span>`;
       } else if (e.status === 'sending') {
         statusBadge = `<span class="badge badge-processing">Sending</span>`;
       } else {
         statusBadge = `<span class="badge badge-draft">Draft</span>`;
+        if (e.isFollowUp) statusBadge += ` <span class="badge badge-draft" style="opacity:0.7;">Follow-up</span>`;
       }
 
       tr.innerHTML = `
@@ -658,15 +728,20 @@ document.addEventListener('DOMContentLoaded', () => {
         <td>${statusBadge}</td>
         <td class="text-muted" style="font-size:12px;">${formattedDate}</td>
         <td class="actions-cell">
-          <button class="btn-icon" style="color:var(--color-indigo);" title="Preview Email" class="btn-preview-email" data-id="${e._id}">
+          <button class="btn-icon" style="color:var(--color-indigo);" title="Preview Email" data-id="${e._id}">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
           </button>
-          <button class="btn-icon info btn-open-composer" data-id="${e._id}" title="Review & Edit Draft">
+          <button class="btn-icon info btn-open-composer" data-id="${e._id}" title="Review &amp; Edit Draft">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4z"/></svg>
           </button>
           ${e.status !== 'sent' ? `
           <button class="btn-icon success btn-send-now" data-id="${e._id}" title="${e.status === 'failed' ? 'Retry Sending' : 'Send Email Immediately'}">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+          ` : ''}
+          ${e.status === 'sent' ? `
+          <button class="btn-icon btn-followup" data-id="${e._id}" title="Generate Follow-Up Email" style="color:var(--color-amber);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>
           </button>
           ` : ''}
           <button class="btn-icon btn-delete-email" data-id="${e._id}" title="Delete Draft">
@@ -676,8 +751,6 @@ document.addEventListener('DOMContentLoaded', () => {
       `;
       tableRecentEmails.appendChild(tr);
     });
-
-    // Event listeners are bound via delegation in init
   }
 
   // Populate Recipient Campaigns Selector
@@ -1406,6 +1479,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (data.success) {
           successCount++;
         } else {
+          // Check if it's a duplicate error
+          if (data.error && (data.error.toLowerCase().includes('duplicate') || data.error.toLowerCase().includes('exists'))) {
+            logToConsole(`[CSV] Skipped duplicate: ${payload.email}`, 'warn');
+          }
           failCount++;
         }
       } catch (err) {

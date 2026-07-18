@@ -192,6 +192,11 @@
               <div class="analytics-sub">all time</div>
             </div>
             <div class="analytics-card">
+              <div class="analytics-label">👁 Opens Tracked</div>
+              <div class="analytics-value text-indigo" id="analytics-opened">0</div>
+              <div class="analytics-sub">unique emails opened</div>
+            </div>
+            <div class="analytics-card">
               <div class="analytics-label">Failed / Bounced</div>
               <div class="analytics-value text-rose" id="analytics-failed">0</div>
               <div class="analytics-sub">needs retry</div>
@@ -205,13 +210,19 @@
                 <h2>Recent Outreach Dispatches</h2>
                 <p>Audit trail of generated emails, drafts, and sends.</p>
               </div>
-              <div style="display:flex; gap:8px; align-items:center;">
+              <div style="display:flex; gap:8px; align-items:center; flex-wrap: wrap;">
+                <!-- Email Search -->
+                <div class="search-box" style="min-width:200px;">
+                  <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                  <input type="text" id="email-search" placeholder="Search subject or recipient...">
+                </div>
                 <!-- Filter Tabs -->
                 <div class="email-filter-tabs">
                   <button class="filter-tab active" data-filter="all" id="filter-all">All</button>
                   <button class="filter-tab" data-filter="draft" id="filter-draft">Drafts <span class="filter-count" id="count-draft">0</span></button>
                   <button class="filter-tab" data-filter="sent" id="filter-sent">Sent <span class="filter-count" id="count-sent">0</span></button>
                   <button class="filter-tab" data-filter="failed" id="filter-failed">Failed <span class="filter-count" id="count-failed">0</span></button>
+                  <button class="filter-tab" data-filter="opened" id="filter-opened">Opened <span class="filter-count" id="count-opened">0</span></button>
                 </div>
                 <button class="btn btn-outline" id="btn-refresh-recent-emails">Refresh</button>
               </div>

@@ -263,6 +263,34 @@ const generateFollowUp = async (req, res, next) => {
 };
 
 /**
+ * GET /api/track/open/:id
+ * Serve a 1x1 tracking pixel and record open event.
+ */
+const trackOpen = async (req, res) => {
+  // Always serve the pixel regardless of DB errors
+  const pixel = Buffer.from(
+    'R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7',
+    'base64'
+  );
+  res.setHeader('Content-Type', 'image/gif');
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+  res.end(pixel);
+
+  // Record open asynchronously (don't block response)
+  try {
+    const email = await Email.findById(req.params.id);
+    if (email && email.status === 'sent') {
+      const update = { $inc: { openCount: 1 } };
+      if (!email.openedAt) update.$set = { openedAt: new Date() };
+      await Email.findByIdAndUpdate(req.params.id, update);
+      logger.info(`[Track] Open recorded for email ${req.params.id}`);
+    }
+  } catch (err) {
+    logger.error(`[Track] Failed to record open: ${err.message}`);
+  }
+};
+
+/**
  * GET /api/emails/stats
  * Get aggregate email statistics.
  */
@@ -276,11 +304,17 @@ const getStats = async (req, res, next) => {
       { $group: { _id: '$outreachType', count: { $sum: 1 } } },
     ]);
 
+    // Count emails opened at least once
+    const openedCount = await Email.countDocuments({ openCount: { $gt: 0 } });
+    const totalCount  = await Email.countDocuments();
+
     res.json({
       success: true,
       data: {
         byStatus: Object.fromEntries(stats.map((s) => [s._id, s.count])),
         byOutreachType: Object.fromEntries(byType.map((s) => [s._id, s.count])),
+        opened: openedCount,
+        total: totalCount,
       },
     });
   } catch (error) {
@@ -298,4 +332,5 @@ module.exports = {
   deleteEmail,
   generateFollowUp,
   getStats,
+  trackOpen,
 };
