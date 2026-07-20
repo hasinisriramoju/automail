@@ -58,10 +58,7 @@ app.get('/health', (req, res) => {
   });
 });
 
-// ─── Static Files ─────────────────────────────────────────────────────────────
-app.use(express.static(path.join(__dirname, '../public')));
-
-// ─── Page Routes ──────────────────────────────────────────────────────────────
+// ─── Page Routes (MUST be before express.static so '/' serves landing, not index.html) ───
 // Landing page (marketing homepage)
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/landing.html'));
@@ -71,6 +68,9 @@ app.get('/', (req, res) => {
 app.get('/dashboard', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/index.html'));
 });
+
+// ─── Static Files ─────────────────────────────────────────────────────────────
+app.use(express.static(path.join(__dirname, '../public'), { index: false }));
 
 // ─── API Routes ───────────────────────────────────────────────────────────────
 app.use('/api/recipients', recipientRoutes);
