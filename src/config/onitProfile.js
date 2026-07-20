@@ -94,12 +94,12 @@ const onitProfile = {
 <br/>
 <table style="font-family: Arial, sans-serif; font-size: 13px; color: #333; border-collapse: collapse;">
   <tr>
-    <td style="padding: 8px 12px; border-left: 3px solid #2563EB;">
-      <strong style="font-size: 15px; color: #1e40af;">OnIT India</strong><br/>
+    <td style="padding: 8px 12px; border-left: 3px solid #00A86B;">
+      <strong style="font-size: 15px; color: #0F172A;">OnIT India</strong><br/>
       <span style="color: #555;">Powering Businesses with Smart Technology</span><br/><br/>
-      <span>🌐 <a href="https://www.onitindia.com" style="color: #2563EB; text-decoration: none;">www.onitindia.com</a></span><br/>
-      <span>🔗 <a href="https://www.linkedin.com/company/onit-india" style="color: #2563EB; text-decoration: none;">LinkedIn</a></span><br/>
-      <span>📧 <a href="mailto:outreach@onitindia.com" style="color: #2563EB; text-decoration: none;">outreach@onitindia.com</a></span>
+      <span>🌐 <a href="https://www.onitindia.com" style="color: #00A86B; text-decoration: none;">www.onitindia.com</a></span><br/>
+      <span>🔗 <a href="https://www.linkedin.com/company/onit-india" style="color: #00A86B; text-decoration: none;">LinkedIn</a></span><br/>
+      <span>📧 <a href="mailto:outreach@onitindia.com" style="color: #00A86B; text-decoration: none;">outreach@onitindia.com</a></span>
     </td>
   </tr>
 </table>

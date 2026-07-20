@@ -60,12 +60,16 @@ document.addEventListener('DOMContentLoaded', () => {
   // Navigation Tabs
   const tabBtnDashboard = document.getElementById('tab-btn-dashboard');
   const tabBtnRecipients = document.getElementById('tab-btn-recipients');
+  const tabBtnAddProspects = document.getElementById('tab-btn-add-prospects');
   const tabBtnSettings = document.getElementById('tab-btn-settings');
   const panelDashboard = document.getElementById('panel-dashboard');
   const panelRecipients = document.getElementById('panel-recipients');
+  const panelAddProspects = document.getElementById('panel-add-prospects');
   const panelSettings = document.getElementById('panel-settings');
+  const btnGotoAddProspects = document.getElementById('btn-goto-add-prospects');
   const pageTitle = document.getElementById('page-title');
   const pageSubtitle = document.getElementById('page-subtitle');
+
 
   // Stats
   const statSent = document.getElementById('stat-sent');
@@ -578,14 +582,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const tabs = [
       { btn: tabBtnDashboard, panel: panelDashboard, title: 'Outreach Dashboard', subtitle: "Welcome to OnIT India's intelligent email hub." },
       { btn: tabBtnRecipients, panel: panelRecipients, title: 'Manage Recipient Leads', subtitle: 'Review, research, and import company profiles.' },
+      { btn: tabBtnAddProspects, panel: panelAddProspects, title: 'Add Prospects & Leads', subtitle: 'Register single leads or upload CSV spreadsheet lists in bulk.' },
       { btn: tabBtnSettings, panel: panelSettings, title: 'Brand Configuration', subtitle: "Update OnIT India's services, team, and signature guidelines." }
     ];
 
     tabs.forEach(tab => {
+      if (!tab.btn) return;
       tab.btn.addEventListener('click', () => {
         tabs.forEach(t => {
-          t.btn.classList.remove('active');
-          t.panel.classList.remove('active');
+          if (t.btn) t.btn.classList.remove('active');
+          if (t.panel) t.panel.classList.remove('active');
         });
         tab.btn.classList.add('active');
         tab.panel.classList.add('active');
@@ -604,8 +610,15 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
 
+    if (btnGotoAddProspects && tabBtnAddProspects) {
+      btnGotoAddProspects.addEventListener('click', () => {
+        tabBtnAddProspects.click();
+      });
+    }
+
     // Single vs Bulk Lead Switchers
     btnMethodSingle.addEventListener('click', () => {
+
       btnMethodSingle.classList.add('active');
       btnMethodBulk.classList.remove('active');
       formSingleLead.classList.add('active');

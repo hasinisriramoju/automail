@@ -35,10 +35,15 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
           Recipients
         </button>
+        <button class="nav-item" id="tab-btn-add-prospects">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="16" y1="11" x2="22" y2="11"/></svg>
+          Add Prospects
+        </button>
         <button class="nav-item" id="tab-btn-settings">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
           Brand Profile
         </button>
+
       </nav>
       <div class="sidebar-footer">
         <div class="model-badge">
@@ -279,123 +284,125 @@
 
         </section>
 
-        <!-- 2. RECIPIENTS VIEW -->
+        <!-- 2. RECIPIENTS VIEW (Full width table) -->
         <section class="tab-panel" id="panel-recipients">
-          
-          <div class="dashboard-grid">
-            
-            <!-- LEFT AREA: LIST OF RECIPIENTS -->
-            <div class="dashboard-card card-double">
-              <div class="card-header flex-header">
-                <div>
-                  <h2>Manage Recipient Leads</h2>
-                  <p>All active outreach prospects in database.</p>
-                </div>
+          <div class="dashboard-card" style="width: 100%;">
+            <div class="card-header flex-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+              <div>
+                <h2>Manage Recipient Leads</h2>
+                <p>All active outreach prospects in database.</p>
+              </div>
+              <div style="display:flex; gap:12px; align-items:center;">
                 <div class="search-box">
                   <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
                   <input type="text" id="recipient-search" placeholder="Search by name, company, or email...">
                 </div>
-              </div>
-              
-              <div class="table-container">
-                <table class="data-table" id="table-recipients">
-                  <thead>
-                    <tr>
-                      <th>Company</th>
-                      <th>Contact Person</th>
-                      <th>Outreach Intent</th>
-                      <th>Website</th>
-                      <th>Research Status</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td colspan="6" class="text-center text-muted">No leads in the database. Please add below.</td>
-                    </tr>
-                  </tbody>
-                </table>
+                <button class="btn btn-emerald" id="btn-goto-add-prospects" style="white-space:nowrap; display:flex; align-items:center; gap:6px;">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  Add Prospects
+                </button>
               </div>
             </div>
+            
+            <div class="table-container">
+              <table class="data-table" id="table-recipients">
+                <thead>
+                  <tr>
+                    <th>Company</th>
+                    <th>Contact Person</th>
+                    <th>Outreach Intent</th>
+                    <th>Website</th>
+                    <th>Research Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td colspan="6" class="text-center text-muted">No leads in the database. Please add below.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
 
-            <!-- RIGHT AREA: ADD RECIPIENTS BOX -->
-            <div class="dashboard-card">
-              <div class="card-header">
-                <h2>Add Prospects</h2>
-                <p>Register single leads or upload CSV spreadsheet lists in bulk.</p>
+        <!-- 3. ADD PROSPECTS VIEW -->
+        <section class="tab-panel" id="panel-add-prospects">
+          <div class="dashboard-card" style="max-width: 840px; margin: 0 auto;">
+            <div class="card-header">
+              <h2>Add Prospects & Leads</h2>
+              <p>Register single leads or upload CSV spreadsheet lists in bulk.</p>
+            </div>
+
+            <!-- TABS WITHIN ADD DRAWER -->
+            <div class="add-methods-tabs">
+              <button class="method-tab active" id="btn-method-single">Single Lead</button>
+              <button class="method-tab" id="btn-method-bulk">Bulk List (CSV)</button>
+            </div>
+
+            <!-- SINGLE FORM -->
+            <form class="lead-form active" id="form-single-lead">
+              <div class="form-group">
+                <label for="lead-company">Company Name *</label>
+                <input type="text" id="lead-company" required placeholder="e.g. Razorpay">
               </div>
-
-              <!-- TABS WITHIN ADD DRAWER -->
-              <div class="add-methods-tabs">
-                <button class="method-tab active" id="btn-method-single">Single Lead</button>
-                <button class="method-tab" id="btn-method-bulk">Bulk List (CSV)</button>
-              </div>
-
-              <!-- SINGLE FORM -->
-              <form class="lead-form active" id="form-single-lead">
+              <div class="form-row">
                 <div class="form-group">
-                  <label for="lead-company">Company Name *</label>
-                  <input type="text" id="lead-company" required placeholder="e.g. Razorpay">
-                </div>
-                <div class="form-row">
-                  <div class="form-group">
-                    <label for="lead-contact">Contact Name</label>
-                    <input type="text" id="lead-contact" placeholder="e.g. Harshil Mathur">
-                  </div>
-                  <div class="form-group">
-                    <label for="lead-title">Title</label>
-                    <input type="text" id="lead-title" placeholder="e.g. CEO">
-                  </div>
-                </div>
-                <div class="form-group">
-                  <label for="lead-email">Email Address *</label>
-                  <input type="email" id="lead-email" required placeholder="e.g. contact@company.com">
-                </div>
-                <div class="form-row">
-                  <div class="form-group">
-                    <label for="lead-website">Website URL</label>
-                    <input type="text" id="lead-website" placeholder="e.g. https://company.com">
-                  </div>
-                  <div class="form-group">
-                    <label for="lead-outreach">Intent</label>
-                    <select id="lead-outreach">
-                      <option value="partnership">Partnership</option>
-                      <option value="sales">Sales</option>
-                      <option value="startup_collab">Startup Collab</option>
-                      <option value="investor">Investor</option>
-                      <option value="networking">Networking</option>
-                      <option value="hiring">Hiring</option>
-                      <option value="internship">Internship</option>
-                      <option value="custom">Custom</option>
-                    </select>
-                  </div>
+                  <label for="lead-contact">Contact Name</label>
+                  <input type="text" id="lead-contact" placeholder="e.g. Harshil Mathur">
                 </div>
                 <div class="form-group">
-                  <label for="lead-description">Manual Summary (Fallback Description)</label>
-                  <textarea id="lead-description" rows="2" placeholder="Brief details about what they do..."></textarea>
-                </div>
-                <button class="btn btn-indigo btn-block" type="submit">Register Lead</button>
-              </form>
-
-              <!-- BULK UPLOADER -->
-              <div class="lead-form" id="form-bulk-leads">
-                <div class="csv-drop-zone" id="csv-drop-zone">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
-                  <p class="drop-text-main">Drag and drop your CSV file here</p>
-                  <p class="drop-text-sub">or click to browse local files</p>
-                  <input type="file" id="csv-file-input" accept=".csv" class="hidden-file-input">
-                </div>
-                <div class="csv-instructions">
-                  <p><strong>Required columns:</strong> <code>companyName</code>, <code>email</code></p>
-                  <p><strong>Optional columns:</strong> <code>contactName</code>, <code>contactTitle</code>, <code>website</code>, <code>outreachType</code>, <code>description</code></p>
+                  <label for="lead-title">Title</label>
+                  <input type="text" id="lead-title" placeholder="e.g. CEO">
                 </div>
               </div>
+              <div class="form-group">
+                <label for="lead-email">Email Address *</label>
+                <input type="email" id="lead-email" required placeholder="e.g. contact@company.com">
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="lead-website">Website URL</label>
+                  <input type="text" id="lead-website" placeholder="e.g. https://company.com">
+                </div>
+                <div class="form-group">
+                  <label for="lead-outreach">Intent</label>
+                  <select id="lead-outreach">
+                    <option value="partnership">Partnership</option>
+                    <option value="sales">Sales</option>
+                    <option value="startup_collab">Startup Collab</option>
+                    <option value="investor">Investor</option>
+                    <option value="networking">Networking</option>
+                    <option value="hiring">Hiring</option>
+                    <option value="internship">Internship</option>
+                    <option value="custom">Custom</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="lead-description">Manual Summary (Fallback Description)</label>
+                <textarea id="lead-description" rows="2" placeholder="Brief details about what they do..."></textarea>
+              </div>
+              <button class="btn btn-emerald btn-block" type="submit">Register Lead</button>
+            </form>
 
+            <!-- BULK UPLOADER -->
+            <div class="lead-form" id="form-bulk-leads">
+              <div class="csv-drop-zone" id="csv-drop-zone">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+                <p class="drop-text-main">Drag and drop your CSV file here</p>
+                <p class="drop-text-sub">or click to browse local files</p>
+                <input type="file" id="csv-file-input" accept=".csv" class="hidden-file-input">
+              </div>
+              <div class="csv-instructions">
+                <p><strong>Required columns:</strong> <code>companyName</code>, <code>email</code></p>
+                <p><strong>Optional columns:</strong> <code>contactName</code>, <code>contactTitle</code>, <code>website</code>, <code>outreachType</code>, <code>description</code></p>
+              </div>
             </div>
 
           </div>
-
         </section>
+
 
         <!-- 3. PROFILE SETTINGS VIEW -->
         <section class="tab-panel" id="panel-settings">

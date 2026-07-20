@@ -419,8 +419,8 @@ input, select, textarea {
 }
 
 input:focus, select:focus, textarea:focus {
-  border-color: var(--color-indigo);
-  box-shadow: 0 0 0 3px var(--color-indigo-glow);
+  border-color: var(--color-green);
+  box-shadow: 0 0 0 3px var(--color-green-muted);
 }
 
 textarea {
@@ -428,11 +428,16 @@ textarea {
 }
 
 .code-textarea {
-  font-family: monospace;
-  font-size: 12px;
-  line-height: 1.4;
-  background-color: #0e0e0e;
+  font-family: 'Fira Code', Consolas, Monaco, monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  background-color: #0F172A;
+  color: #38BDF8;
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
 }
+
 
 /* DATA TABLE */
 .table-container {

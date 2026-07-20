@@ -172,9 +172,9 @@ const wrapInEmailTemplate = (bodyHtml, subject) => {
 
           <!-- Header -->
           <tr>
-            <td style="background: linear-gradient(135deg, #1e3a5f 0%, #2563EB 100%); padding: 24px 32px;">
-              <p style="margin:0; font-size:20px; font-weight:bold; color:#ffffff; letter-spacing:0.5px;">OnIT India</p>
-              <p style="margin:4px 0 0; font-size:12px; color:#a5c8ff;">Powering Businesses with Smart Technology</p>
+            <td style="background: linear-gradient(135deg, #0F172A 0%, #00A86B 100%); padding: 24px 32px;">
+              <p style="margin:0; font-size:20px; font-weight:bold; color:#ffffff; letter-spacing:0.5px;">⚡ OnIT India</p>
+              <p style="margin:4px 0 0; font-size:12px; color:#A7F3D0;">Powering Businesses with Smart Technology</p>
             </td>
           </tr>
 
@@ -195,12 +195,12 @@ const wrapInEmailTemplate = (bodyHtml, subject) => {
             <td style="padding: 24px 32px; background:#f9fafb;">
               <table cellpadding="0" cellspacing="0">
                 <tr>
-                  <td style="border-left: 3px solid #2563EB; padding-left: 12px;">
-                    <p style="margin:0; font-size:14px; font-weight:bold; color:#1e3a5f;">OnIT India</p>
+                  <td style="border-left: 3px solid #00A86B; padding-left: 12px;">
+                    <p style="margin:0; font-size:14px; font-weight:bold; color:#0F172A;">OnIT India</p>
                     <p style="margin:2px 0 8px; font-size:12px; color:#6b7280;">Powering Businesses with Smart Technology</p>
-                    <p style="margin:2px 0; font-size:12px; color:#374151;">🌐 <a href="https://www.onitindia.com" style="color:#2563EB; text-decoration:none;">www.onitindia.com</a></p>
-                    <p style="margin:2px 0; font-size:12px; color:#374151;">🔗 <a href="https://www.linkedin.com/company/onit-india" style="color:#2563EB; text-decoration:none;">LinkedIn</a></p>
-                    <p style="margin:2px 0; font-size:12px; color:#374151;">📧 <a href="mailto:outreach@onitindia.com" style="color:#2563EB; text-decoration:none;">outreach@onitindia.com</a></p>
+                    <p style="margin:2px 0; font-size:12px; color:#374151;">🌐 <a href="https://www.onitindia.com" style="color:#00A86B; text-decoration:none;">www.onitindia.com</a></p>
+                    <p style="margin:2px 0; font-size:12px; color:#374151;">🔗 <a href="https://www.linkedin.com/company/onit-india" style="color:#00A86B; text-decoration:none;">LinkedIn</a></p>
+                    <p style="margin:2px 0; font-size:12px; color:#374151;">📧 <a href="mailto:outreach@onitindia.com" style="color:#00A86B; text-decoration:none;">outreach@onitindia.com</a></p>
                   </td>
                 </tr>
               </table>
@@ -209,10 +209,11 @@ const wrapInEmailTemplate = (bodyHtml, subject) => {
 
           <!-- Footer -->
           <tr>
-            <td style="padding:16px 32px; background:#1e3a5f; text-align:center;">
+            <td style="padding:16px 32px; background:#0F172A; text-align:center;">
               <p style="margin:0; font-size:11px; color:#9ca3af;">This email was sent by OnIT India's AI Outreach Platform. Please reply to unsubscribe.</p>
             </td>
           </tr>
+
 
         </table>
       </td>
