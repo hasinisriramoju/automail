@@ -61,6 +61,17 @@ app.get('/health', (req, res) => {
 // ─── Static Files ─────────────────────────────────────────────────────────────
 app.use(express.static(path.join(__dirname, '../public')));
 
+// ─── Page Routes ──────────────────────────────────────────────────────────────
+// Landing page (marketing homepage)
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/landing.html'));
+});
+
+// App dashboard
+app.get('/dashboard', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/index.html'));
+});
+
 // ─── API Routes ───────────────────────────────────────────────────────────────
 app.use('/api/recipients', recipientRoutes);
 app.use('/api/emails', emailRoutes);
