@@ -430,27 +430,90 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    // Event delegation for Recent Emails Table actions
-    tableRecentEmails.addEventListener('click', async (e) => {
-      // Preview button
-      const previewBtn = e.target.closest('[title="Preview Email"]');
-      if (previewBtn) {
-        e.preventDefault();
-        const id = previewBtn.getAttribute('data-id');
-        const emailData = state.allEmails.find(em => em._id === id);
-        if (emailData) {
-          state.previewEmailId = id;
-          previewModalSubject.textContent = emailData.subject || 'Email Preview';
-          previewModalTo.textContent = `To: ${emailData.recipientId?.email || ''} — ${emailData.recipientId?.companyName || ''}`;
-          const iframeDoc = previewIframe.contentDocument || previewIframe.contentWindow.document;
-          iframeDoc.open();
-          iframeDoc.write(emailData.bodyHtml || `<p style="font-family:sans-serif;padding:24px;">${emailData.bodyText || 'No email body.'}</p>`);
-          iframeDoc.close();
-          btnPreviewSend.style.display = emailData.status === 'sent' ? 'none' : 'inline-flex';
-          modalEmailPreview.classList.add('active');
-        }
-        return;
+  /** Ensure HTML content has OnIT Green (#00A86B) header formatting */
+  function ensureGreenHeader(html, subject) {
+    if (!html) return '';
+    let updated = html
+      .replace(/background:\s*linear-gradient\([^)]*\)/gi, 'background: #00A86B; background: linear-gradient(135deg, #00A86B 0%, #008a58 100%)')
+      .replace(/background:\s*#1e3a5f/gi, 'background: #00A86B')
+      .replace(/background:\s*#2563EB/gi, 'background: #00A86B')
+      .replace(/border-left:\s*3px solid #[0-9a-fA-F]+/gi, 'border-left: 3px solid #00A86B')
+      .replace(/color:\s*#2563EB/gi, 'color: #00A86B')
+      .replace(/color:\s*#1e40af/gi, 'color: #0F172A')
+      .replace(/color:\s*#a5c8ff/gi, 'color: #ffffff');
+
+    if (!updated.includes('OnIT India') && !updated.includes('<!DOCTYPE html>')) {
+      updated = `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>${subject || 'Email Preview'}</title></head>
+<body style="margin:0; padding:0; background-color:#f4f4f7; font-family: Arial, Helvetica, sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f7; padding: 24px 0;">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px; width:100%; background:#ffffff; border-radius:8px; overflow:hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+        <tr>
+          <td style="background: #00A86B; background: linear-gradient(135deg, #00A86B 0%, #008a58 100%); padding: 24px 32px;">
+            <p style="margin:0; font-size:20px; font-weight:bold; color:#ffffff; letter-spacing:0.5px;">⚡ OnIT India</p>
+            <p style="margin:4px 0 0; font-size:12px; color:#ffffff; opacity:0.92;">Powering Businesses with Smart Technology</p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding: 32px; color:#333333; font-size:15px; line-height:1.7;">
+            ${updated}
+          </td>
+        </tr>
+        <tr><td style="padding: 0 32px;"><hr style="border:none; border-top:1px solid #e5e7eb; margin:0;"></td></tr>
+        <tr>
+          <td style="padding: 24px 32px; background:#f9fafb;">
+            <table cellpadding="0" cellspacing="0">
+              <tr>
+                <td style="border-left: 3px solid #00A86B; padding-left: 12px;">
+                  <p style="margin:0; font-size:14px; font-weight:bold; color:#0F172A;">OnIT India</p>
+                  <p style="margin:2px 0 8px; font-size:12px; color:#6b7280;">Powering Businesses with Smart Technology</p>
+                  <p style="margin:2px 0; font-size:12px; color:#374151;">🌐 <a href="https://www.onitindia.com" style="color:#00A86B; text-decoration:none;">www.onitindia.com</a></p>
+                  <p style="margin:2px 0; font-size:12px; color:#374151;">🔗 <a href="https://www.linkedin.com/company/onit-india" style="color:#00A86B; text-decoration:none;">LinkedIn</a></p>
+                  <p style="margin:2px 0; font-size:12px; color:#374151;">📧 <a href="mailto:outreach@onitindia.com" style="color:#00A86B; text-decoration:none;">outreach@onitindia.com</a></p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:16px 32px; background:#0F172A; text-align:center;">
+            <p style="margin:0; font-size:11px; color:#9ca3af;">This email was sent by OnIT India's AI Outreach Platform. Please reply to unsubscribe.</p>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+    }
+    return updated;
+  }
+
+  // Event delegation for Recent Emails Table actions
+  tableRecentEmails.addEventListener('click', async (e) => {
+    // Preview button
+    const previewBtn = e.target.closest('[title="Preview Email"]');
+    if (previewBtn) {
+      e.preventDefault();
+      const id = previewBtn.getAttribute('data-id');
+      const emailData = state.allEmails.find(em => em._id === id);
+      if (emailData) {
+        state.previewEmailId = id;
+        previewModalSubject.textContent = emailData.subject || 'Email Preview';
+        previewModalTo.textContent = `To: ${emailData.recipientId?.email || ''} — ${emailData.recipientId?.companyName || ''}`;
+        const iframeDoc = previewIframe.contentDocument || previewIframe.contentWindow.document;
+        iframeDoc.open();
+        let content = emailData.bodyHtml || `<p style="font-family:sans-serif;padding:24px;">${emailData.bodyText || 'No email body.'}</p>`;
+        iframeDoc.write(ensureGreenHeader(content, emailData.subject));
+        iframeDoc.close();
+        btnPreviewSend.style.display = emailData.status === 'sent' ? 'none' : 'inline-flex';
+        modalEmailPreview.classList.add('active');
       }
+      return;
+    }
+
 
       // Follow-up button
       const followUpBtn = e.target.closest('.btn-followup');
@@ -1176,16 +1239,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 4. Campaign Bulk Send Dispatch Button
     btnCampaignSend.addEventListener('click', async () => {
-      const draftEmails = state.allEmails.filter(e => e.status === 'draft');
+      const selectedIds = getSelectedRecipientIds(); // [] = all, or array of selected recipient IDs
+      let draftEmails = state.allEmails.filter(e => e.status === 'draft');
+
+      if (selectedIds.length > 0) {
+        draftEmails = draftEmails.filter(e => {
+          const rId = typeof e.recipientId === 'object' ? e.recipientId?._id : e.recipientId;
+          return selectedIds.includes(rId);
+        });
+      }
+
       if (draftEmails.length === 0) {
-        showToast('No pending drafts ready to send.', 'error');
+        if (selectedIds.length > 0) {
+          showToast('No pending drafts ready to send for the selected company/companies.', 'error');
+        } else {
+          showToast('No pending drafts ready to send.', 'error');
+        }
         return;
       }
 
+      const targetText = selectedIds.length > 0
+        ? `Are you sure you want to send ${draftEmails.length} draft email(s) for the selected ${selectedIds.length} company/companies via SMTP?`
+        : `Are you sure you want to send all ${draftEmails.length} draft emails out via SMTP?`;
+
       showCustomConfirm(
         "Confirm Bulk Send Dispatch", 
-        `Are you sure you want to send all ${draftEmails.length} draft emails out via SMTP?`, 
-        "Send All", 
+        targetText, 
+        selectedIds.length > 0 ? "Send Selected" : "Send All", 
         async () => {
           btnCampaignSend.setAttribute('disabled', 'true');
 
@@ -1198,11 +1278,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
           sendWrap.style.display = 'block';
           sendBar.style.width = '0%';
-          sendBar.style.background = 'linear-gradient(90deg, #10b981, #059669)';
+          sendBar.style.background = 'linear-gradient(90deg, #00A86B, #22c55e)';
           sendLabel.textContent = 'Dispatching emails...';
           sendCount.textContent = `0 / ${total}`;
 
-          logToConsole(`[SMTP] Bulk dispatch starting for ${draftEmails.length} emails.`);
+          logToConsole(`[SMTP] Bulk dispatch starting for ${draftEmails.length} email(s)...`);
           showToast('SMTP bulk dispatch started...', 'info');
 
           let successCount = 0;
@@ -1211,22 +1291,23 @@ document.addEventListener('DOMContentLoaded', () => {
           for (let i = 0; i < draftEmails.length; i++) {
             const e = draftEmails[i];
             const emailAddress = e.recipientId?.email || 'N/A';
-            sendLabel.textContent = `Sending to: ${emailAddress}...`;
-            logToConsole(`[SMTP] [${i+1}/${draftEmails.length}] Sending to: ${emailAddress}`);
+            const companyName  = e.recipientId?.companyName || '';
+            sendLabel.textContent = `Sending to ${companyName} (${emailAddress})...`;
+            logToConsole(`[SMTP] [${i+1}/${total}] Sending to: ${companyName} <${emailAddress}>`);
 
             try {
               const res = await authFetch(`${API_BASE}/emails/${e._id}/send`, { method: 'POST' });
               const data = await res.json();
               if (data.success) {
                 successCount++;
-                logToConsole(`[SMTP] ✓ Delivered to: ${emailAddress}`);
+                logToConsole(`[SMTP] ✓ Delivered to: ${companyName} <${emailAddress}>`);
               } else {
                 failCount++;
-                logToConsole(`[SMTP] ✗ Delivery failed for ${emailAddress}: ${data.error}`, 'error');
+                logToConsole(`[SMTP] ✗ Delivery failed for ${companyName}: ${data.error}`, 'error');
               }
             } catch (err) {
               failCount++;
-              logToConsole(`[SMTP] ✗ Network error for ${emailAddress}`, 'error');
+              logToConsole(`[SMTP] ✗ Network error for ${companyName}`, 'error');
             }
 
             const pct = Math.round(((i + 1) / total) * 100);
@@ -1236,14 +1317,14 @@ document.addEventListener('DOMContentLoaded', () => {
             fetchRecentEmails();
 
             if (i < draftEmails.length - 1) {
-              await new Promise(r => setTimeout(r, 3000));
+              await new Promise(r => setTimeout(r, 2000));
             }
           }
 
           const allOk = failCount === 0;
           sendBar.style.width = '100%';
           sendBar.style.background = allOk
-            ? 'linear-gradient(90deg, #10b981, #059669)'
+            ? 'linear-gradient(90deg, #00A86B, #22c55e)'
             : 'linear-gradient(90deg, #f59e0b, #d97706)';
           sendLabel.textContent = allOk
             ? `✓ All ${successCount} emails dispatched!`
@@ -1259,6 +1340,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       );
     });
+
   }
 
   async function triggerEmailGenerationPipeline(recipientId, outreachType = 'partnership', customHint = '') {
