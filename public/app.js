@@ -1,5 +1,46 @@
 document.addEventListener('DOMContentLoaded', () => {
 
+  // ─── AUTH ─────────────────────────────────────────────────────────────────────
+  const AUTH_TOKEN_KEY = 'automail_token';
+  const getToken = () => localStorage.getItem(AUTH_TOKEN_KEY);
+
+  // Auth check on load — redirect to /login if not authenticated
+  (async () => {
+    const token = getToken();
+    if (!token) { window.location.href = '/login?next=/dashboard'; return; }
+    try {
+      const res = await fetch('/api/auth/check', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (!data.authenticated) {
+        localStorage.removeItem(AUTH_TOKEN_KEY);
+        window.location.href = '/login?next=/dashboard';
+      }
+    } catch {
+      window.location.href = '/login?next=/dashboard';
+    }
+  })();
+
+  /**
+   * Auth-aware fetch wrapper — attaches Bearer token to every request.
+   * If the server returns 401, redirects to /login.
+   */
+  const authFetch = async (url, options = {}) => {
+    const token = getToken();
+    const headers = {
+      ...(options.headers || {}),
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+    };
+    const res = await fetch(url, { ...options, headers, credentials: 'include' });
+    if (res.status === 401) {
+      localStorage.removeItem(AUTH_TOKEN_KEY);
+      window.location.href = '/login?next=/dashboard';
+      throw new Error('Unauthorized');
+    }
+    return res;
+  };
+
   // ─── STATE MANAGEMENT ────────────────────────────────────────────────────────
   let state = {
     recipients: [],
@@ -52,6 +93,24 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnCampaignGenerate = document.getElementById('btn-campaign-generate');
   const btnCampaignSend = document.getElementById('btn-campaign-send');
   const btnRetryFailed = document.getElementById('btn-retry-failed');
+  const btnLogout = document.getElementById('btn-logout');
+
+  // ─── LOGOUT HANDLER ───────────────────────────────────────────────────────────
+  if (btnLogout) {
+    btnLogout.addEventListener('click', async () => {
+      try {
+        const token = getToken();
+        await fetch('/api/auth/logout', {
+          method: 'POST',
+          headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+          credentials: 'include',
+        });
+      } catch (e) { /* ignore network errors on logout */ }
+      localStorage.removeItem(AUTH_TOKEN_KEY);
+      window.location.href = '/login';
+    });
+  }
+
 
   // Email Preview Modal
   const modalEmailPreview = document.getElementById('modal-email-preview');
@@ -182,7 +241,7 @@ document.addEventListener('DOMContentLoaded', () => {
         logToConsole(`[SMTP] Sending previewed email ID: ${id}`);
         showToast('Sending email...', 'info');
         try {
-          const res = await fetch(`${API_BASE}/emails/${id}/send`, { method: 'POST' });
+          const res = await authFetch(`${API_BASE}/emails/${id}/send`, { method: 'POST' });
           const data = await res.json();
           if (data.success) {
             showToast('Email sent successfully!', 'success');
@@ -239,7 +298,7 @@ document.addEventListener('DOMContentLoaded', () => {
             for (const e of failedEmails) {
               const emailAddress = e.recipientId?.email || 'N/A';
               try {
-                const res = await fetch(`${API_BASE}/emails/${e._id}/send`, { method: 'POST' });
+                const res = await authFetch(`${API_BASE}/emails/${e._id}/send`, { method: 'POST' });
                 const data = await res.json();
                 if (data.success) { successCount++; logToConsole(`[SMTP] ✓ Retry success: ${emailAddress}`); }
                 else { failCount++; logToConsole(`[SMTP] ✗ Retry failed: ${emailAddress}: ${data.error}`, 'error'); }
@@ -277,7 +336,7 @@ document.addEventListener('DOMContentLoaded', () => {
           async () => {
             try {
               console.log('[Delete] Sending request: DELETE /api/recipients/' + id);
-              const res = await fetch(`${API_BASE}/recipients/${id}`, { method: 'DELETE' });
+              const res = await authFetch(`${API_BASE}/recipients/${id}`, { method: 'DELETE' });
               const data = await res.json();
               console.log('[Delete] Server response received:', data);
               
@@ -334,7 +393,7 @@ document.addEventListener('DOMContentLoaded', () => {
             showToast('Generating follow-up email...', 'info');
             logToConsole(`[AI] Generating follow-up for email ${id}`);
             try {
-              const res = await fetch(`${API_BASE}/emails/${id}/followup`, { method: 'POST',
+              const res = await authFetch(`${API_BASE}/emails/${id}/followup`, { method: 'POST',
                 headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) });
               const data = await res.json();
               if (data.success) {
@@ -365,7 +424,7 @@ document.addEventListener('DOMContentLoaded', () => {
         logToConsole(`[SMTP] Direct dispatch requested for Email ID: ${id}`);
         showToast('Sending email...', 'info');
         try {
-          const res = await fetch(`${API_BASE}/emails/${id}/send`, { method: 'POST' });
+          const res = await authFetch(`${API_BASE}/emails/${id}/send`, { method: 'POST' });
           const data = await res.json();
           if (data.success) {
             showToast('Email delivered successfully!', 'success');
@@ -394,7 +453,7 @@ document.addEventListener('DOMContentLoaded', () => {
           "Delete", 
           async () => {
             try {
-              const res = await fetch(`${API_BASE}/emails/${id}`, { method: 'DELETE' });
+              const res = await authFetch(`${API_BASE}/emails/${id}`, { method: 'DELETE' });
               const data = await res.json();
               if (data.success) {
                 showToast('Draft deleted', 'success');
@@ -520,7 +579,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Fetch Stats Banner
   async function fetchStats() {
     try {
-      const res = await fetch(`${API_BASE}/emails/stats`);
+      const res = await authFetch(`${API_BASE}/emails/stats`);
       const data = await res.json();
       if (data.success) {
         const byStatus = data.data.byStatus || {};
@@ -579,7 +638,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Fetch Brand Profile
   async function fetchProfile() {
     try {
-      const res = await fetch(`${API_BASE}/profile`);
+      const res = await authFetch(`${API_BASE}/profile`);
       const data = await res.json();
       if (data.success) {
         state.profile = data.data;
@@ -613,7 +672,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Fetch Recent Emails List
   async function fetchRecentEmails() {
     try {
-      const res = await fetch(`${API_BASE}/emails`);
+      const res = await authFetch(`${API_BASE}/emails`);
       const data = await res.json();
       if (data.success) {
         state.allEmails = data.data;
@@ -816,7 +875,7 @@ document.addEventListener('DOMContentLoaded', () => {
       };
 
       try {
-        const res = await fetch(`${API_BASE}/recipients`, {
+        const res = await authFetch(`${API_BASE}/recipients`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
@@ -895,7 +954,7 @@ document.addEventListener('DOMContentLoaded', () => {
       };
 
       try {
-        const res = await fetch(`${API_BASE}/profile`, {
+        const res = await authFetch(`${API_BASE}/profile`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
@@ -956,7 +1015,7 @@ document.addEventListener('DOMContentLoaded', () => {
           logToConsole(`[Campaign] [${i+1}/${total}] Processing AI research and generation for: ${r.companyName}`);
 
           try {
-            const res = await fetch(`${API_BASE}/emails/generate`, {
+            const res = await authFetch(`${API_BASE}/emails/generate`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ recipientId: r._id, outreachType, customHint })
@@ -1049,7 +1108,7 @@ document.addEventListener('DOMContentLoaded', () => {
             logToConsole(`[SMTP] [${i+1}/${draftEmails.length}] Sending to: ${emailAddress}`);
 
             try {
-              const res = await fetch(`${API_BASE}/emails/${e._id}/send`, { method: 'POST' });
+              const res = await authFetch(`${API_BASE}/emails/${e._id}/send`, { method: 'POST' });
               const data = await res.json();
               if (data.success) {
                 successCount++;
@@ -1101,7 +1160,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Call API in the background
     try {
-      const res = await fetch(`${API_BASE}/emails/generate`, {
+      const res = await authFetch(`${API_BASE}/emails/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ recipientId, outreachType, customHint })
@@ -1136,7 +1195,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Load email data
     try {
-      const res = await fetch(`${API_BASE}/emails/${emailId}`);
+      const res = await authFetch(`${API_BASE}/emails/${emailId}`);
       const data = await res.json();
       if (data.success) {
         const email = data.data;
@@ -1195,7 +1254,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     try {
-      const res = await fetch(`${API_BASE}/emails/${state.currentEditingEmailId}`, {
+      const res = await authFetch(`${API_BASE}/emails/${state.currentEditingEmailId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -1230,14 +1289,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     try {
       // Save changes
-      await fetch(`${API_BASE}/emails/${state.currentEditingEmailId}`, {
+      await authFetch(`${API_BASE}/emails/${state.currentEditingEmailId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
 
       // Send
-      const sendRes = await fetch(`${API_BASE}/emails/${state.currentEditingEmailId}/send`, {
+      const sendRes = await authFetch(`${API_BASE}/emails/${state.currentEditingEmailId}/send`, {
         method: 'POST'
       });
       const sendData = await sendRes.json();
@@ -1470,7 +1529,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       try {
-        const res = await fetch(`${API_BASE}/recipients`, {
+        const res = await authFetch(`${API_BASE}/recipients`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)

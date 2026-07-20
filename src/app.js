@@ -18,10 +18,13 @@ const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
 
 // Route modules
 const recipientRoutes = require('./routes/recipients');
-const emailRoutes = require('./routes/emails');
+const emailRoutes    = require('./routes/emails');
 const campaignRoutes = require('./routes/campaigns');
 const templateRoutes = require('./routes/templates');
-const profileRoutes = require('./routes/profile');
+const profileRoutes  = require('./routes/profile');
+const authRoutes     = require('./routes/auth');
+const requireAuth    = require('./middleware/requireAuth');
+const { verifyToken, extractToken } = require('./utils/authStore');
 
 const app = express();
 
@@ -64,8 +67,17 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/landing.html'));
 });
 
-// App dashboard
+// Login page
+app.get('/login', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/login.html'));
+});
+
+// App dashboard — redirect to /login if not authenticated
 app.get('/dashboard', (req, res) => {
+  const token = extractToken(req);
+  if (!verifyToken(token)) {
+    return res.redirect('/login?next=/dashboard');
+  }
   res.sendFile(path.join(__dirname, '../public/index.html'));
 });
 
@@ -73,11 +85,15 @@ app.get('/dashboard', (req, res) => {
 app.use(express.static(path.join(__dirname, '../public'), { index: false }));
 
 // ─── API Routes ───────────────────────────────────────────────────────────────
-app.use('/api/recipients', recipientRoutes);
-app.use('/api/emails', emailRoutes);
-app.use('/api/campaigns', campaignRoutes);
-app.use('/api/templates', templateRoutes);
-app.use('/api/profile', profileRoutes);
+// Auth (public — no token required)
+app.use('/api/auth', authRoutes);
+
+// All other API routes require authentication
+app.use('/api/recipients', requireAuth, recipientRoutes);
+app.use('/api/emails',     requireAuth, emailRoutes);
+app.use('/api/campaigns',  requireAuth, campaignRoutes);
+app.use('/api/templates',  requireAuth, templateRoutes);
+app.use('/api/profile',    requireAuth, profileRoutes);
 
 // ─── 404 & Error Handlers (MUST be last) ─────────────────────────────────────
 app.use(notFoundHandler);
