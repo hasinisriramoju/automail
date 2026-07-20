@@ -87,8 +87,77 @@ document.addEventListener('DOMContentLoaded', () => {
   // Forms & Inputs
   const formSingleLead = document.getElementById('form-single-lead');
   const formBrandProfile = document.getElementById('form-brand-profile');
-  const campaignSelect = document.getElementById('campaign-select');
+  // Multi-select recipient picker
+  const msWrap     = document.getElementById('recipient-multiselect-wrap');
+  const msTrigger  = document.getElementById('recipient-multiselect-trigger');
+  const msDropdown = document.getElementById('recipient-multiselect-dropdown');
+  const msOptions  = document.getElementById('multiselect-options');
+  const msSearch   = document.getElementById('multiselect-search');
+  const msLabel    = document.getElementById('multiselect-label');
+  const msAllChk   = document.getElementById('multiselect-all');
+
+  /** Open / close */
+  msTrigger.addEventListener('click', () => {
+    msWrap.classList.toggle('open');
+    msTrigger.classList.toggle('open');
+    if (msWrap.classList.contains('open')) msSearch.focus();
+  });
+  document.addEventListener('click', (e) => {
+    if (!msWrap.contains(e.target)) {
+      msWrap.classList.remove('open');
+      msTrigger.classList.remove('open');
+    }
+  });
+
+  /** Search filter */
+  msSearch.addEventListener('input', () => {
+    const q = msSearch.value.toLowerCase();
+    msOptions.querySelectorAll('.multiselect-option:not(.multiselect-all-option)').forEach(opt => {
+      const txt = opt.querySelector('.multiselect-option-text').textContent.toLowerCase();
+      opt.style.display = txt.includes(q) ? '' : 'none';
+    });
+  });
+
+  /** "All" checkbox logic */
+  msAllChk.addEventListener('change', () => {
+    const all = msAllChk.checked;
+    msOptions.querySelectorAll('input[type="checkbox"]:not(#multiselect-all)').forEach(cb => {
+      cb.checked = false;
+    });
+    updateMultiselectLabel();
+  });
+
+  /** Individual checkbox logic */
+  msOptions.addEventListener('change', (e) => {
+    if (e.target === msAllChk) return;
+    if (e.target.type === 'checkbox') {
+      // If any individual is selected, uncheck "All"
+      msAllChk.checked = false;
+      updateMultiselectLabel();
+    }
+  });
+
+  function updateMultiselectLabel() {
+    const checked = [...msOptions.querySelectorAll('input[type="checkbox"]:not(#multiselect-all):checked')];
+    if (checked.length === 0) {
+      msAllChk.checked = true;
+      msLabel.innerHTML = `All Available Recipients`;
+    } else if (checked.length === 1) {
+      msLabel.textContent = checked[0].closest('.multiselect-option').querySelector('.multiselect-option-text').textContent;
+    } else {
+      msLabel.innerHTML = `${checked.length} groups selected <span class="multiselect-count-badge">${checked.length}</span>`;
+    }
+  }
+
+  /** Returns array of selected recipient IDs, or empty array = all */
+  function getSelectedRecipientIds() {
+    if (msAllChk.checked) return [];
+    const checked = [...msOptions.querySelectorAll('input[type="checkbox"]:not(#multiselect-all):checked')];
+    return checked.map(cb => cb.value).filter(Boolean);
+  }
+
   const campaignOutreachType = document.getElementById('campaign-outreach-type');
+
   const campaignHint = document.getElementById('campaign-hint');
   const btnCampaignGenerate = document.getElementById('btn-campaign-generate');
   const btnCampaignSend = document.getElementById('btn-campaign-send');
@@ -812,16 +881,32 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Populate Recipient Campaigns Selector
+  // Populate Recipient Multi-Select
   function populateCampaignDropdown(recipients) {
-    campaignSelect.innerHTML = `<option value="">All Available Recipients (${recipients.length})</option>`;
+    // Update "All" label count
+    msOptions.querySelector('.multiselect-all-option .multiselect-option-text').textContent =
+      `All Available Recipients (${recipients.length})`;
+
+    // Remove previous individual options
+    msOptions.querySelectorAll('.multiselect-option:not(.multiselect-all-option)').forEach(el => el.remove());
+
+    // Add one checkbox per recipient
     recipients.forEach(r => {
-      const opt = document.createElement('option');
-      opt.value = r._id;
-      opt.textContent = `${r.companyName} (${r.email})`;
-      campaignSelect.appendChild(opt);
+      const lbl = document.createElement('label');
+      lbl.className = 'multiselect-option';
+      lbl.innerHTML = `
+        <input type="checkbox" value="${r._id}">
+        <span class="multiselect-check"></span>
+        <span class="multiselect-option-text">${r.companyName} <span style="color:var(--text-muted);font-size:11px">(${r.email})</span></span>
+      `;
+      msOptions.appendChild(lbl);
     });
+
+    // Reset to "All" state
+    msAllChk.checked = true;
+    msLabel.textContent = `All Available Recipients (${recipients.length})`;
   }
+
 
   // Populate Brand Profile form inputs
   function populateProfileForm(profile) {
@@ -974,45 +1059,54 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 3. Campaign Generation Button
     btnCampaignGenerate.addEventListener('click', async () => {
-      const recipientId = campaignSelect.value;
+      const selectedIds = getSelectedRecipientIds(); // [] = all, [id] = single, [id,id,...] = multiple
       const outreachType = campaignOutreachType.value;
       const customHint = campaignHint.value.trim();
 
-      if (recipientId) {
-        // Run single direct generation pipeline
-        triggerEmailGenerationPipeline(recipientId, outreachType, customHint);
-      } else {
-        // Bulk generation for all
-        if (state.recipients.length === 0) {
-          showToast('No recipients registered to generate drafts.', 'error');
-          return;
-        }
+      // Determine which recipients to process
+      const targetRecipients = selectedIds.length > 0
+        ? state.recipients.filter(r => selectedIds.includes(r._id))
+        : state.recipients;
 
-        const total = state.recipients.length;
+      if (selectedIds.length === 1) {
+        // Single recipient — use fast single pipeline
+        triggerEmailGenerationPipeline(selectedIds[0], outreachType, customHint);
+        return;
+      }
 
-        // Show and reset progress bar
-        const progressWrap  = document.getElementById('bulk-progress-wrap');
-        const progressBar   = document.getElementById('bulk-progress-bar');
-        const progressLabel = document.getElementById('bulk-progress-label');
-        const progressCount = document.getElementById('bulk-progress-count');
+      // Bulk generation for selected or all
+      if (targetRecipients.length === 0) {
+        showToast('No recipients registered to generate drafts.', 'error');
+        return;
+      }
 
-        progressWrap.style.display = 'block';
-        progressBar.style.width = '0%';
-        progressBar.style.background = 'linear-gradient(90deg, #6366f1, #8b5cf6)';
-        progressLabel.textContent = 'Generating drafts...';
-        progressCount.textContent = `0 / ${total}`;
+      const total = targetRecipients.length;
 
-        btnCampaignGenerate.setAttribute('disabled', 'true');
-        logToConsole(`[Campaign] Started bulk generation draft campaign for ${total} recipients...`);
+      // Show and reset progress bar
+      const progressWrap  = document.getElementById('bulk-progress-wrap');
+      const progressBar   = document.getElementById('bulk-progress-bar');
+      const progressLabel = document.getElementById('bulk-progress-label');
+      const progressCount = document.getElementById('bulk-progress-count');
 
-        let successCount = 0;
-        let failCount = 0;
+      progressWrap.style.display = 'block';
+      progressBar.style.width = '0%';
+      progressBar.style.background = 'linear-gradient(90deg, #00A86B, #22c55e)';
+      progressLabel.textContent = 'Generating drafts...';
+      progressCount.textContent = `0 / ${total}`;
 
-        for (let i = 0; i < total; i++) {
-          const r = state.recipients[i];
-          progressLabel.textContent = `Drafting email for ${r.companyName}...`;
-          progressCount.textContent = `${i} / ${total}`;
-          logToConsole(`[Campaign] [${i+1}/${total}] Processing AI research and generation for: ${r.companyName}`);
+      btnCampaignGenerate.setAttribute('disabled', 'true');
+      logToConsole(`[Campaign] Started bulk generation for ${total} recipient(s)...`);
+
+      let successCount = 0;
+      let failCount = 0;
+
+      for (let i = 0; i < total; i++) {
+        const r = targetRecipients[i];
+        progressLabel.textContent = `Drafting email for ${r.companyName}...`;
+        progressCount.textContent = `${i} / ${total}`;
+        logToConsole(`[Campaign] [${i+1}/${total}] Processing: ${r.companyName}`);
+
+
 
           try {
             const res = await authFetch(`${API_BASE}/emails/generate`, {
@@ -1064,8 +1158,8 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => {
           progressWrap.style.display = 'none';
         }, 4000);
-      }
     });
+
 
     // 4. Campaign Bulk Send Dispatch Button
     btnCampaignSend.addEventListener('click', async () => {

@@ -1,39 +1,47 @@
-/* ROOT DESIGN TOKENS */
+/* ROOT DESIGN TOKENS — Light Theme matching OnIT landing page */
 :root {
-  --bg-main: #090D16;
-  --bg-sidebar: #0E1320;
-  --bg-card: #121827;
-  --bg-input: #182032;
-  --border-color: #1F293D;
-  --border-hover: #2E3E5B;
-  
-  --text-main: #F1F5F9;
-  --text-muted: #94A3B8;
-  --text-label: #E2E8F0;
-  
-  --color-indigo: #6366F1;
+  --bg-main:    #F8FAFC;
+  --bg-sidebar: #FFFFFF;
+  --bg-card:    #FFFFFF;
+  --bg-input:   #F8FAFC;
+  --border-color: #E5E7EB;
+  --border-hover: #CBD5E1;
+
+  --text-main:  #0F172A;
+  --text-muted: #64748B;
+  --text-label: #374151;
+
+  /* Primary Green (OnIT brand) */
+  --color-green:        #00A86B;
+  --color-green-hover:  #00C47E;
+  --color-green-dark:   #008A58;
+  --color-green-muted:  rgba(0, 168, 107, 0.08);
+
+  /* Accent: Indigo */
+  --color-indigo:       #6366F1;
   --color-indigo-hover: #4F46E5;
-  --color-indigo-muted: rgba(99, 102, 241, 0.1);
-  
-  --color-emerald: #10B981;
-  --color-emerald-hover: #059669;
-  --color-emerald-muted: rgba(16, 185, 129, 0.1);
-  
-  --color-amber: #F59E0B;
-  --color-amber-muted: rgba(245, 158, 11, 0.1);
-  
-  --color-rose: #EF4444;
-  --color-rose-hover: #DC2626;
-  --color-rose-muted: rgba(239, 68, 68, 0.1);
+  --color-indigo-muted: rgba(99, 102, 241, 0.09);
+
+  /* Accent: Emerald — keep for success states */
+  --color-emerald:      #10B981;
+  --color-emerald-hover:#059669;
+  --color-emerald-muted:rgba(16, 185, 129, 0.09);
+
+  --color-amber:        #F59E0B;
+  --color-amber-muted:  rgba(245, 158, 11, 0.09);
+
+  --color-rose:         #EF4444;
+  --color-rose-hover:   #DC2626;
+  --color-rose-muted:   rgba(239, 68, 68, 0.09);
 
   --font-display: 'Outfit', 'Inter', sans-serif;
-  --font-body: 'Inter', sans-serif;
+  --font-body:    'Inter', sans-serif;
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 16px;
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
-  --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.07), 0 2px 6px rgba(0,0,0,0.04);
+  --shadow-lg: 0 12px 40px rgba(0,0,0,0.10), 0 4px 12px rgba(0,0,0,0.06);
 }
 
 /* RESET & BASE */
@@ -85,7 +93,7 @@ body {
 .logo-icon {
   width: 28px;
   height: 28px;
-  color: var(--color-indigo);
+  color: var(--color-green);
 }
 
 .brand-name {
@@ -136,8 +144,8 @@ body {
 }
 
 .nav-item.active {
-  background-color: var(--color-indigo-muted);
-  color: var(--color-indigo);
+  background-color: var(--color-green-muted);
+  color: var(--color-green-dark);
 }
 
 .sidebar-footer {
@@ -193,7 +201,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: rgba(9, 13, 22, 0.5);
+  background-color: var(--bg-sidebar);
   backdrop-filter: blur(10px);
   position: sticky;
   top: 0;
@@ -247,8 +255,9 @@ body {
 }
 
 .text-indigo { color: var(--color-indigo); }
-.text-amber { color: var(--color-amber); }
-.text-rose { color: var(--color-rose); }
+.text-amber  { color: var(--color-amber); }
+.text-rose   { color: var(--color-rose); }
+.text-green  { color: var(--color-green); }
 
 /* TAB PANEL CONTAINER */
 .tab-panels-container {
@@ -1276,4 +1285,146 @@ textarea {
   color: #fca5a5;
 }
 .btn-logout svg { flex-shrink: 0; }
+
+/* ─── Multi-Select Dropdown ─────────────────────────────── */
+.multiselect-wrap {
+  position: relative;
+  width: 100%;
+}
+.multiselect-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--text-main);
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+  user-select: none;
+}
+.multiselect-trigger:focus,
+.multiselect-trigger.open {
+  border-color: var(--color-green);
+  box-shadow: 0 0 0 3px rgba(0,168,107,0.10);
+}
+.multiselect-value {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text-main);
+}
+.multiselect-arrow {
+  flex-shrink: 0;
+  color: var(--text-muted);
+  transition: transform 0.22s;
+}
+.multiselect-wrap.open .multiselect-arrow { transform: rotate(180deg); }
+
+.multiselect-dropdown {
+  display: none;
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0; right: 0;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  z-index: 200;
+  max-height: 280px;
+  overflow: hidden;
+  flex-direction: column;
+}
+.multiselect-wrap.open .multiselect-dropdown { display: flex; }
+
+.multiselect-search-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+.multiselect-search {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 13px;
+  color: var(--text-main);
+  font-family: var(--font-body);
+  outline: none;
+}
+.multiselect-search::placeholder { color: var(--text-muted); }
+
+.multiselect-options {
+  overflow-y: auto;
+  flex: 1;
+  padding: 6px 4px;
+}
+.multiselect-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text-main);
+  transition: background 0.15s;
+  user-select: none;
+}
+.multiselect-option:hover { background: var(--bg-main); }
+.multiselect-option input[type="checkbox"] { display: none; }
+.multiselect-check {
+  width: 16px; height: 16px;
+  border: 1.5px solid var(--border-color);
+  border-radius: 4px;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+  background: var(--bg-card);
+}
+.multiselect-option input:checked ~ .multiselect-check {
+  background: var(--color-green);
+  border-color: var(--color-green);
+}
+.multiselect-option input:checked ~ .multiselect-check::after {
+  content: '';
+  width: 9px; height: 5px;
+  border-left: 2px solid white;
+  border-bottom: 2px solid white;
+  transform: rotate(-45deg) translate(1px, -1px);
+}
+.multiselect-option-text { flex: 1; }
+
+.multiselect-all-option {
+  border-bottom: 1px solid var(--border-color);
+  border-radius: 0;
+  margin-bottom: 4px;
+  font-weight: 600;
+  color: var(--color-green-dark);
+}
+.multiselect-count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-green);
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  min-width: 20px;
+  height: 20px;
+  border-radius: 99px;
+  padding: 0 6px;
+  margin-left: 6px;
+}
+
 

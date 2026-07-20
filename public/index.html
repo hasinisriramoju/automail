@@ -107,11 +107,29 @@
               <div class="campaign-launcher-box">
                 <div class="form-row">
                   <div class="form-group flex-2">
-                    <label for="campaign-select">Choose Recipient Group</label>
-                    <select id="campaign-select">
-                      <option value="">All Available Recipients</option>
-                    </select>
+                    <label>Choose Recipient Group(s)</label>
+                    <!-- Custom Multi-Select Dropdown -->
+                    <div class="multiselect-wrap" id="recipient-multiselect-wrap">
+                      <div class="multiselect-trigger" id="recipient-multiselect-trigger" tabindex="0">
+                        <span class="multiselect-value" id="multiselect-label">All Available Recipients</span>
+                        <svg class="multiselect-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="6 9 12 15 18 9"/></svg>
+                      </div>
+                      <div class="multiselect-dropdown" id="recipient-multiselect-dropdown">
+                        <div class="multiselect-search-wrap">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                          <input class="multiselect-search" id="multiselect-search" type="text" placeholder="Search recipients...">
+                        </div>
+                        <div class="multiselect-options" id="multiselect-options">
+                          <label class="multiselect-option multiselect-all-option">
+                            <input type="checkbox" id="multiselect-all" value="" checked>
+                            <span class="multiselect-check"></span>
+                            <span class="multiselect-option-text">All Available Recipients</span>
+                          </label>
+                        </div>
+                      </div>
+                    </div>
                   </div>
+
                   <div class="form-group">
                     <label for="campaign-outreach-type">Outreach Intent</label>
                     <select id="campaign-outreach-type">
