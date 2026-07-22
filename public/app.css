@@ -1493,10 +1493,28 @@ textarea {
 .canva-topbar-left { display: flex; align-items: center; gap: 8px; }
 .canva-topbar-center { flex: 1; display: flex; justify-content: center; }
 .canva-topbar-actions { display: flex; align-items: center; gap: 6px; }
+.canva-topbar-actions .btn {
+  background: #1e293b !important;
+  color: #f8fafc !important;
+  border: 1px solid rgba(255,255,255,0.18) !important;
+  font-weight: 600 !important;
+}
+.canva-topbar-actions .btn:hover {
+  background: #334155 !important;
+  border-color: #818cf8 !important;
+}
+.canva-topbar-actions .btn-emerald {
+  background: #10b981 !important;
+  color: #ffffff !important;
+  border: none !important;
+}
+.canva-topbar-actions .btn-emerald:hover {
+  background: #059669 !important;
+}
 .canva-studio-title { font-size: 14px; font-weight: 700; color: #f1f5f9; letter-spacing: -0.2px; }
-.canva-poster-name { font-size: 13px; color: #64748b; }
-.canva-topbar-sep { width: 1px; height: 20px; background: rgba(255,255,255,0.08); margin: 0 2px; }
-.btn-sm { padding: 5px 12px !important; font-size: 12px !important; }
+.canva-poster-name { font-size: 13px; color: #94a3b8; }
+.canva-topbar-sep { width: 1px; height: 20px; background: rgba(255,255,255,0.15); margin: 0 4px; }
+.btn-sm { padding: 6px 14px !important; font-size: 12px !important; }
 
 /* Three-column editor layout */
 .canva-editor {
