@@ -220,6 +220,7 @@ document.addEventListener('DOMContentLoaded', () => {
     bindFormSubmissions();
     setupTemplateStudio();
     setupPosterStudio();
+    setupBulkCampaigns();
     fetchStats();
     fetchRecipients();
     fetchRecentEmails();
@@ -772,6 +773,227 @@ document.addEventListener('DOMContentLoaded', () => {
 </html>`;
     }
     return updated;
+  }
+
+  // ─── BULK CAMPAIGNS (EMAILS & POSTERS) ──────────────────────────────────────
+  function setupBulkCampaigns() {
+    const formatSelect = document.getElementById('campaign-outreach-format');
+    let generatedDraftIds = [];
+
+    // Multiselect dropdown toggle
+    if (msTrigger && msDropdown) {
+      msTrigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        msDropdown.classList.toggle('active');
+      });
+
+      document.addEventListener('click', (e) => {
+        if (msWrap && !msWrap.contains(e.target)) {
+          msDropdown?.classList.remove('active');
+        }
+      });
+    }
+
+    // Multiselect search filter
+    if (msSearch) {
+      msSearch.addEventListener('input', (e) => {
+        const q = e.target.value.toLowerCase();
+        msOptions?.querySelectorAll('.multiselect-option:not(.multiselect-all-option)').forEach(opt => {
+          const txt = opt.textContent.toLowerCase();
+          opt.style.display = txt.includes(q) ? 'flex' : 'none';
+        });
+      });
+    }
+
+    // Select All checkbox
+    const chkAll = document.getElementById('multiselect-all');
+    if (chkAll) {
+      chkAll.addEventListener('change', () => {
+        const isChecked = chkAll.checked;
+        msOptions?.querySelectorAll('.multiselect-item-chk').forEach(chk => {
+          chk.checked = isChecked;
+        });
+        updateMultiselectLabel();
+      });
+    }
+
+    // Item checkbox changes
+    msOptions?.addEventListener('change', (e) => {
+      if (e.target.classList.contains('multiselect-item-chk')) {
+        updateMultiselectLabel();
+      }
+    });
+
+    function updateMultiselectLabel() {
+      const checked = msOptions?.querySelectorAll('.multiselect-item-chk:checked') || [];
+      const total = msOptions?.querySelectorAll('.multiselect-item-chk') || [];
+      if (msLabel) {
+        if (checked.length === total.length) {
+          msLabel.textContent = `All Available Recipients (${total.length})`;
+        } else if (checked.length === 0) {
+          msLabel.textContent = 'No Recipients Selected';
+        } else {
+          msLabel.textContent = `${checked.length} Recipient(s) Selected`;
+        }
+      }
+    }
+
+    // BULK GENERATE BUTTON (EMAIL & POSTER)
+    if (btnCampaignGenerate) {
+      btnCampaignGenerate.addEventListener('click', async () => {
+        const checkedChks = msOptions?.querySelectorAll('.multiselect-item-chk:checked');
+        const recipIds = [...(checkedChks || [])].map(c => c.value);
+
+        if (!recipIds.length) {
+          showToast('Please select at least one recipient.', 'error');
+          return;
+        }
+
+        const format = formatSelect?.value || 'email';
+        const type = campaignTypeSelect?.value || 'partnership';
+        const hint = campaignHintInput?.value.trim() || '';
+
+        btnCampaignGenerate.disabled = true;
+        btnCampaignGenerate.textContent = '⏳ Generating...';
+        generatedDraftIds = [];
+
+        if (bulkProgressWrap) bulkProgressWrap.style.display = 'block';
+        if (bulkProgressBar) bulkProgressBar.style.width = '0%';
+        if (bulkProgressCount) bulkProgressCount.textContent = `0 / ${recipIds.length}`;
+        if (bulkProgressLabel) bulkProgressLabel.textContent = `Generating bulk ${format} drafts...`;
+
+        logToConsole(`[Bulk] Starting bulk ${format.toUpperCase()} draft generation for ${recipIds.length} recipient(s)...`);
+
+        let count = 0;
+        for (const recipId of recipIds) {
+          const recip = state.recipients.find(r => r._id === recipId);
+          if (!recip) { count++; continue; }
+
+          try {
+            let payload = {};
+            if (format === 'poster') {
+              const bg = document.getElementById('poster-bg-color')?.value || '#00A86B';
+              const headline = document.getElementById('poster-headline-input')?.value || `Scale Your Outreach with AI`;
+              const subtitle = document.getElementById('poster-subtitle-input')?.value || 'OnIT India Smart Technology Solutions';
+              const cta = document.getElementById('poster-cta-input')?.value || 'Book Free Consultation →';
+
+              const posterHtml = `
+                <div style="font-family:Inter,sans-serif;max-width:600px;margin:auto;background:#0f172a;border-radius:12px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,0.2);">
+                  <div style="background:${bg};padding:32px 24px;text-align:center;">
+                    <img src="onitindia-logo.png" alt="OnIT India" style="height:36px;background:#fff;padding:4px 10px;border-radius:6px;margin-bottom:16px;">
+                    <h1 style="color:#fff;font-size:24px;margin:0 0 8px 0;font-weight:700;">${headline}</h1>
+                    <p style="color:#e2e8f0;font-size:15px;margin:0;">${subtitle}</p>
+                  </div>
+                  <div style="padding:32px 24px;text-align:center;background:#ffffff;">
+                    <p style="color:#334155;font-size:15px;line-height:1.7;margin-bottom:24px;">Dear ${recip.contactName || recip.companyName},<br>We've created a custom visual campaign poster tailored for ${recip.companyName}. Let's discuss how OnIT India's AI-driven technology solutions can accelerate your growth.</p>
+                    <a href="mailto:outreach@onitindia.com?subject=Re:%20${encodeURIComponent(headline)}" style="background:${bg};color:#ffffff;padding:12px 24px;border-radius:8px;font-weight:bold;text-decoration:none;display:inline-block;font-size:14px;">${cta}</a>
+                  </div>
+                  <div style="padding:16px;background:#f8fafc;border-top:1px solid #e2e8f0;text-align:center;color:#64748b;font-size:12px;">
+                    Powered by OnIT India AI Outreach Suite | <a href="https://www.onitindia.com" style="color:#00A86B;text-decoration:none;">www.onitindia.com</a>
+                  </div>
+                </div>
+              `;
+
+              payload = {
+                recipientId,
+                recipientEmail: recip.email,
+                recipientCompany: recip.companyName,
+                outreachType: 'poster_marketing',
+                customSubject: `🎨 Campaign Poster for ${recip.companyName}`,
+                customBodyHtml: posterHtml,
+                skipResearch: true
+              };
+            } else {
+              payload = {
+                recipientId,
+                outreachType: type,
+                customHint: hint,
+                skipResearch: true
+              };
+            }
+
+            const res = await authFetch(`${API_BASE}/emails/generate`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (data.success && data.data?._id) {
+              generatedDraftIds.push(data.data._id);
+              logToConsole(`[Bulk] ✓ ${format.toUpperCase()} draft saved for ${recip.companyName}`);
+            }
+          } catch (err) {
+            logToConsole(`[Bulk] Error generating for ${recip.companyName}: ${err.message}`, 'error');
+          }
+
+          count++;
+          const pct = Math.round((count / recipIds.length) * 100);
+          if (bulkProgressBar) bulkProgressBar.style.width = `${pct}%`;
+          if (bulkProgressCount) bulkProgressCount.textContent = `${count} / ${recipIds.length}`;
+        }
+
+        btnCampaignGenerate.disabled = false;
+        btnCampaignGenerate.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg> Generate Drafts in Bulk`;
+
+        showToast(`Generated ${generatedDraftIds.length} ${format.toUpperCase()} draft(s)! Saved to Dashboard.`, 'success');
+        if (btnCampaignSend) btnCampaignSend.disabled = (generatedDraftIds.length === 0);
+
+        fetchRecentEmails();
+        fetchStats();
+      });
+    }
+
+    // BULK SEND BUTTON (SEND ALL GENERATED DRAFTS/POSTERS)
+    if (btnCampaignSend) {
+      btnCampaignSend.addEventListener('click', async () => {
+        const idsToSend = generatedDraftIds.length > 0
+          ? generatedDraftIds
+          : state.allEmails.filter(e => e.status === 'draft').map(e => e._id);
+
+        if (!idsToSend.length) {
+          showToast('No drafts available to dispatch.', 'error');
+          return;
+        }
+
+        btnCampaignSend.disabled = true;
+        btnCampaignSend.textContent = '⏳ Sending...';
+
+        if (sendProgressWrap) sendProgressWrap.style.display = 'block';
+        if (sendProgressBar) sendProgressBar.style.width = '0%';
+        if (sendProgressCount) sendProgressCount.textContent = `0 / ${idsToSend.length}`;
+        if (sendProgressLabel) sendProgressLabel.textContent = `Dispatching ${idsToSend.length} email/poster campaign(s)...`;
+
+        logToConsole(`[Bulk SMTP] Dispatching ${idsToSend.length} campaign draft(s)...`);
+
+        let count = 0;
+        for (const id of idsToSend) {
+          try {
+            const res = await authFetch(`${API_BASE}/emails/${id}/send`, { method: 'POST' });
+            const data = await res.json();
+            if (data.success) {
+              logToConsole(`[Bulk SMTP] ✓ Delivered draft ID: ${id}`);
+            } else {
+              logToConsole(`[Bulk SMTP] ✗ Delivery failed for ID ${id}: ${data.error}`, 'error');
+            }
+          } catch (err) {
+            logToConsole(`[Bulk SMTP] Network error for ID ${id}`, 'error');
+          }
+
+          count++;
+          const pct = Math.round((count / idsToSend.length) * 100);
+          if (sendProgressBar) sendProgressBar.style.width = `${pct}%`;
+          if (sendProgressCount) sendProgressCount.textContent = `${count} / ${idsToSend.length}`;
+        }
+
+        btnCampaignSend.disabled = false;
+        btnCampaignSend.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Start Bulk Send Dispatch`;
+
+        showToast('Bulk campaign dispatch completed!', 'success');
+        generatedDraftIds = [];
+        fetchRecentEmails();
+        fetchStats();
+      });
+    }
   }
 
   // ─── TEMPLATE STUDIO JS ──────────────────────────────────────────────────────
