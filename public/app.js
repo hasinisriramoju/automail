@@ -1736,6 +1736,11 @@ document.addEventListener('DOMContentLoaded', () => {
       `;
       msOptions.appendChild(label);
     });
+    // Update trigger label count
+    const msLabel = document.getElementById('multiselect-label');
+    if (msLabel) {
+      msLabel.textContent = `All Available Recipients (${recipients.length})`;
+    }
   }
 
   function bindFormSubmissions() {
