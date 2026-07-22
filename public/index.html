@@ -192,135 +192,18 @@
 
         </section>
 
-        <!-- 2. TEMPLATES VIEW (Email Builder + Poster Builder) -->
+        <!-- 2. TEMPLATES VIEW (Poster Studio) -->
         <section class="tab-panel" id="panel-templates">
           <div class="dashboard-card max-width-card" style="max-width: 100%;">
             <div class="card-header flex-header" style="border-bottom: 1px solid var(--border-color); padding-bottom: 16px; margin-bottom: 20px;">
               <div>
-                <h2>Template Studio</h2>
-                <p>Create and customize Email and Poster Templates with dynamic variables and rich visual formatting.</p>
-              </div>
-              <div class="add-methods-tabs" style="margin: 0;">
-                <button class="method-tab active" id="btn-template-type-email">✉️ Email Templates</button>
-                <button class="method-tab" id="btn-template-type-poster">🎨 Poster Templates</button>
+                <h2>Poster Studio</h2>
+                <p>Design and customize visual campaign posters with real-time canvas editing and drag-to-reposition text elements.</p>
               </div>
             </div>
 
-            <!-- EMAIL TEMPLATES SUB-PANEL -->
-            <div id="subpanel-email-templates">
-              <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 24px;">
-                
-                <!-- EDITOR FORM -->
-                <div>
-                  <div class="form-row">
-                    <div class="form-group flex-2">
-                      <label for="template-category">Template Category</label>
-                      <select id="template-category" class="form-input">
-                        <option value="Cold Outreach">Cold Outreach</option>
-                        <option value="Partnership">Partnership</option>
-                        <option value="Marketing">Marketing</option>
-                        <option value="Sales">Sales</option>
-                        <option value="Product Launch">Product Launch</option>
-                        <option value="Newsletter">Newsletter</option>
-                        <option value="Follow-up">Follow-up</option>
-                        <option value="Meeting Request">Meeting Request</option>
-                        <option value="Hiring">Hiring</option>
-                        <option value="Investor Outreach">Investor Outreach</option>
-                        <option value="Customer Success">Customer Success</option>
-                        <option value="Event Invitation">Event Invitation</option>
-                        <option value="Custom">Custom</option>
-                      </select>
-                    </div>
-                    <div class="form-group">
-                      <label for="template-name">Template Title</label>
-                      <input type="text" id="template-name" placeholder="e.g. Cold Sales Intro" class="form-input">
-                    </div>
-                  </div>
-
-                  <div class="form-group">
-                    <label for="template-subject">Subject Line</label>
-                    <input type="text" id="template-subject" placeholder="e.g. Partnership Opportunity with {{company}}" class="form-input">
-                  </div>
-
-                  <div class="form-group">
-                    <label for="template-preview-text">Preview Text</label>
-                    <input type="text" id="template-preview-text" placeholder="Short preheader text..." class="form-input">
-                  </div>
-
-                  <!-- Dynamic Variables Chips -->
-                  <div class="form-group">
-                    <label style="font-size:12px; font-weight:600; color:var(--text-muted); margin-bottom:6px; display:block;">Insert Dynamic Variables:</label>
-                    <div style="display:flex; flex-wrap:wrap; gap:6px;">
-                      <button type="button" class="btn-variable-chip" data-var="{{firstName}}">{{firstName}}</button>
-                      <button type="button" class="btn-variable-chip" data-var="{{lastName}}">{{lastName}}</button>
-                      <button type="button" class="btn-variable-chip" data-var="{{company}}">{{company}}</button>
-                      <button type="button" class="btn-variable-chip" data-var="{{designation}}">{{designation}}</button>
-                      <button type="button" class="btn-variable-chip" data-var="{{industry}}">{{industry}}</button>
-                      <button type="button" class="btn-variable-chip" data-var="{{website}}">{{website}}</button>
-                      <button type="button" class="btn-variable-chip" data-var="{{senderName}}">{{senderName}}</button>
-                      <button type="button" class="btn-variable-chip" data-var="{{senderCompany}}">{{senderCompany}}</button>
-                      <button type="button" class="btn-variable-chip" data-var="{{date}}">{{date}}</button>
-                      <button type="button" class="btn-variable-chip" data-var="{{custom}}">{{custom}}</button>
-                    </div>
-                  </div>
-
-                  <div class="form-group">
-                    <label for="template-greeting">Greeting</label>
-                    <input type="text" id="template-greeting" value="Hi {{firstName}}," class="form-input">
-                  </div>
-
-                  <div class="form-group">
-                    <label for="template-body">Email Body HTML / Text</label>
-                    <textarea id="template-body" rows="8" class="form-input" style="font-family:monospace; font-size:13px;" placeholder="Write email body content..."></textarea>
-                  </div>
-
-                  <div class="form-row">
-                    <div class="form-group">
-                      <label for="template-cta">Call-To-Action (CTA)</label>
-                      <input type="text" id="template-cta" placeholder="e.g. Book a 15-min intro call" class="form-input">
-                    </div>
-                    <div class="form-group">
-                      <label for="template-signature">Signature</label>
-                      <input type="text" id="template-signature" placeholder="Best regards, {{senderName}}" class="form-input">
-                    </div>
-                  </div>
-
-                  <div class="form-group">
-                    <label for="template-footer">Footer Text</label>
-                    <input type="text" id="template-footer" value="OnIT India — Powering Businesses with Smart Technology" class="form-input">
-                  </div>
-
-                  <!-- Actions Bar -->
-                  <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:20px;">
-                    <button type="button" class="btn btn-emerald" id="btn-save-email-template">Save Template</button>
-                    <button type="button" class="btn btn-indigo" id="btn-save-email-draft">Save Draft</button>
-                    <button type="button" class="btn btn-outline" id="btn-duplicate-email-template">Duplicate</button>
-                    <button type="button" class="btn btn-outline" id="btn-test-email-send" style="color:var(--color-indigo);">Test Email</button>
-                    <button type="button" class="btn btn-rose" id="btn-delete-email-template" style="margin-left:auto; background:var(--color-rose); color:#fff;">Delete</button>
-                  </div>
-                </div>
-
-                <!-- LIVE PREVIEW PANE -->
-                <div>
-                  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                    <h3 style="font-size:14px; font-weight:600;">Live Email Preview</h3>
-                    <div class="email-filter-tabs" style="margin:0;">
-                      <button class="filter-tab active" id="btn-prev-mode-desktop">Desktop</button>
-                      <button class="filter-tab" id="btn-prev-mode-mobile">Mobile</button>
-                      <button class="filter-tab" id="btn-prev-mode-dark">Dark Mode</button>
-                    </div>
-                  </div>
-
-                  <div id="template-preview-wrap" style="border:1px solid var(--border-color); border-radius:8px; overflow:hidden; background:#f4f4f7; min-height:500px; padding:16px;">
-                    <iframe id="template-live-iframe" style="width:100%; height:520px; border:none; background:#fff; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.08);"></iframe>
-                  </div>
-                </div>
-
-              </div>
-            </div>
-
-            <!-- POSTER TEMPLATES SUB-PANEL -->
-            <div id="subpanel-poster-templates" style="display:none;">
+            <!-- POSTER STUDIO PANEL -->
+            <div id="subpanel-poster-templates">
               <div style="display: grid; grid-template-columns: 280px 1fr; gap: 20px;">
                 
                 <!-- CANVAS TOOLBAR & CONTROLS -->
