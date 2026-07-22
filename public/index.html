@@ -192,71 +192,252 @@
 
         </section>
 
-        <!-- 2. TEMPLATES VIEW (Poster Studio) -->
+        <!-- 2. TEMPLATES VIEW — Canva-like Poster Studio -->
         <section class="tab-panel" id="panel-templates">
-          <div class="dashboard-card max-width-card" style="max-width: 100%;">
-            <div class="card-header flex-header" style="border-bottom: 1px solid var(--border-color); padding-bottom: 16px; margin-bottom: 20px;">
-              <div>
-                <h2>Poster Studio</h2>
-                <p>Design and customize visual campaign posters with real-time canvas editing and drag-to-reposition text elements.</p>
+          <div class="canva-editor-wrap">
+
+            <!-- TOP BAR -->
+            <div class="canva-topbar">
+              <div class="canva-topbar-left">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                <span class="canva-studio-title">Poster Studio</span>
+              </div>
+              <div class="canva-topbar-center">
+                <span class="canva-poster-name" id="canva-poster-name">OnIT Campaign Poster</span>
+              </div>
+              <div class="canva-topbar-actions">
+                <button class="btn btn-sm btn-outline" id="btn-poster-undo" title="Undo">↩ Undo</button>
+                <div class="canva-topbar-sep"></div>
+                <button class="btn btn-sm btn-outline" id="btn-poster-png">⬇ PNG</button>
+                <button class="btn btn-sm btn-outline" id="btn-poster-jpg">⬇ JPG</button>
+                <button class="btn btn-sm btn-outline" id="btn-poster-print">🖨 Print</button>
+                <button class="btn btn-sm btn-emerald" id="btn-poster-save">💾 Save</button>
               </div>
             </div>
 
-            <!-- POSTER STUDIO PANEL -->
-            <div id="subpanel-poster-templates">
-              <div style="display: grid; grid-template-columns: 280px 1fr; gap: 20px;">
-                
-                <!-- CANVAS TOOLBAR & CONTROLS -->
-                <div style="border-right:1px solid var(--border-color); padding-right:16px;">
-                  <h3 style="font-size:14px; font-weight:700; margin-bottom:12px;">Poster Toolbox</h3>
-                  
-                  <div class="form-group">
-                    <label>Poster Theme</label>
-                    <select id="poster-theme-select" class="form-input">
-                      <option value="modern-dark">Modern Dark</option>
-                      <option value="corporate-green">Corporate Green</option>
-                      <option value="vibrant-gradient">Vibrant Gradient</option>
-                      <option value="minimal-light">Minimal Light</option>
+            <!-- EDITOR BODY -->
+            <div class="canva-editor">
+
+              <!-- LEFT: Tool Sidebar -->
+              <div class="canva-left-panel">
+                <div class="canva-tool-tabs">
+                  <button class="canva-tool-tab active" data-ctab="templates">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+                    Templates
+                  </button>
+                  <button class="canva-tool-tab" data-ctab="text">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/></svg>
+                    Text
+                  </button>
+                  <button class="canva-tool-tab" data-ctab="background">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>
+                    Background
+                  </button>
+                  <button class="canva-tool-tab" data-ctab="elements">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                    Elements
+                  </button>
+                </div>
+
+                <!-- Templates panel -->
+                <div class="canva-tool-panel active" id="ctab-templates">
+                  <p style="font-size:11px;color:#64748b;margin:0 0 8px;">Click a template to apply</p>
+                  <div class="canva-template-grid" id="canva-template-grid"></div>
+                </div>
+
+                <!-- Text panel -->
+                <div class="canva-tool-panel" id="ctab-text">
+                  <p style="font-size:11px;color:#64748b;margin:0 0 8px;">Click to add text to poster</p>
+                  <button class="canva-add-text-btn" data-addtext="heading">+ Add Heading</button>
+                  <button class="canva-add-text-btn" data-addtext="subheading">+ Add Subheading</button>
+                  <button class="canva-add-text-btn" data-addtext="body">+ Add Body Text</button>
+                  <button class="canva-add-text-btn" data-addtext="caption">+ Add Caption</button>
+                  <button class="canva-add-text-btn" data-addtext="cta">+ Add CTA Button</button>
+                  <div style="margin-top:8px; border-top:1px solid rgba(255,255,255,0.06); padding-top:8px;">
+                    <p style="font-size:11px;color:#64748b;margin:0 0 8px;">Font Family</p>
+                    <select id="poster-global-font" class="cp-select" style="width:100%;">
+                      <option value="Inter, sans-serif">Inter (Default)</option>
+                      <option value="Outfit, sans-serif">Outfit</option>
+                      <option value="Georgia, serif">Georgia</option>
+                      <option value="'Courier New', monospace">Courier New</option>
+                      <option value="'Times New Roman', serif">Times New Roman</option>
                     </select>
                   </div>
-
-                  <div class="form-group">
-                    <label>Headline Text</label>
-                    <input type="text" id="poster-headline-input" value="Scale Your Outreach with AI" class="form-input">
-                  </div>
-
-                  <div class="form-group">
-                    <label>Subtitle Text</label>
-                    <input type="text" id="poster-subtitle-input" value="OnIT India Smart Technology Solutions" class="form-input">
-                  </div>
-
-                  <div class="form-group">
-                    <label>CTA Button Text</label>
-                    <input type="text" id="poster-cta-input" value="Book Free Consultation →" class="form-input">
-                  </div>
-
-                  <div class="form-group">
-                    <label>Background Color</label>
-                    <input type="color" id="poster-bg-color" value="#00A86B" style="width:100%; height:36px; cursor:pointer; border-radius:6px; border:1px solid var(--border-color);">
-                  </div>
-
-                  <div style="display:flex; flex-direction:column; gap:8px; margin-top:20px;">
-                    <button type="button" class="btn btn-emerald" id="btn-export-poster-png">Export PNG</button>
-                    <button type="button" class="btn btn-indigo" id="btn-export-poster-jpg">Export JPG</button>
-                    <button type="button" class="btn btn-outline" id="btn-export-poster-pdf">Print / Export PDF</button>
-                  </div>
                 </div>
 
-                <!-- CANVAS DISPLAY -->
-                <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; background:#1e293b; border-radius:12px; padding:24px; min-height:540px;">
-                  <canvas id="poster-canvas" width="600" height="750" style="max-width:100%; max-height:480px; border-radius:8px; box-shadow:0 8px 24px rgba(0,0,0,0.3); background:#fff;"></canvas>
-                  <p style="color:#94a3b8; font-size:12px; margin-top:12px;">Drag elements on canvas to reposition.</p>
+                <!-- Background panel -->
+                <div class="canva-tool-panel" id="ctab-background">
+                  <p style="font-size:11px;color:#64748b;margin:0 0 8px;">Solid Color</p>
+                  <div class="cp-row">
+                    <input type="color" id="poster-bg-color" value="#00A86B" style="width:40px;height:32px;padding:2px;border-radius:6px;border:1px solid rgba(255,255,255,0.1);cursor:pointer;background:transparent;">
+                    <input type="text" id="poster-bg-hex" class="cp-text-input" value="#00A86B" placeholder="#hex" style="flex:1;">
+                  </div>
+                  <p style="font-size:11px;color:#64748b;margin:8px 0 6px;">Gradient Presets</p>
+                  <div class="gradient-grid" id="poster-gradient-grid"></div>
+                  <p style="font-size:11px;color:#64748b;margin:8px 0 6px;">Dark Themes</p>
+                  <div class="gradient-grid" id="poster-dark-grid"></div>
                 </div>
 
+                <!-- Elements panel -->
+                <div class="canva-tool-panel" id="ctab-elements">
+                  <p style="font-size:11px;color:#64748b;margin:0 0 8px;">Add elements</p>
+                  <button class="canva-add-text-btn" id="btn-add-logo">🏢 Add OnIT Logo</button>
+                  <button class="canva-add-text-btn" id="btn-add-divider">— Add Divider Line</button>
+                  <button class="canva-add-text-btn" id="btn-add-badge">⬛ Add Badge/Tag</button>
+                  <button class="canva-add-text-btn" id="btn-add-star-rating">⭐ Add Star Rating</button>
+                  <button class="canva-add-text-btn" id="btn-add-quote">❝ Add Quote Block</button>
+                </div>
               </div>
-            </div>
 
-          </div>
+              <!-- CENTER: Workspace -->
+              <div class="canva-workspace">
+                <!-- Floating element toolbar -->
+                <div class="canva-float-bar" id="canva-float-bar">
+                  <button class="cfb-btn" id="cfb-bold" title="Bold"><b>B</b></button>
+                  <button class="cfb-btn" id="cfb-italic" title="Italic"><i>I</i></button>
+                  <button class="cfb-btn" id="cfb-underline" title="Underline"><u>U</u></button>
+                  <span class="cfb-sep"></span>
+                  <input type="number" class="cfb-input cfb-fontsize" id="cfb-fontsize" value="32" min="8" max="200" title="Font Size">
+                  <span style="font-size:11px;color:#64748b;">px</span>
+                  <span class="cfb-sep"></span>
+                  <input type="color" class="cfb-input cfb-color" id="cfb-color" value="#ffffff" title="Text Color">
+                  <span class="cfb-sep"></span>
+                  <button class="cfb-btn" id="cfb-align-left" title="Align Left"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="15" y2="12"/><line x1="3" y1="18" x2="18" y2="18"/></svg></button>
+                  <button class="cfb-btn" id="cfb-align-center" title="Center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg></button>
+                  <button class="cfb-btn" id="cfb-align-right" title="Align Right"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="9" y1="12" x2="21" y2="12"/><line x1="6" y1="18" x2="21" y2="18"/></svg></button>
+                  <span class="cfb-sep"></span>
+                  <button class="cfb-btn cfb-delete" id="cfb-delete" title="Delete Element"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+                </div>
+
+                <!-- Poster canvas -->
+                <div class="canva-scroll-area">
+                  <div class="canva-canvas-bg">
+                    <div id="canva-poster" class="canva-poster">
+                      <!-- Background layer -->
+                      <div id="poster-bg-layer" class="poster-bg-layer"></div>
+                      <!-- Elements added dynamically -->
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Status bar -->
+                <div class="canva-status-bar">
+                  <span class="canva-status-item" id="canva-pos-display">Position: —</span>
+                  <span class="canva-status-item">|</span>
+                  <span class="canva-status-item" id="canva-size-display">Size: 600 × 800</span>
+                  <span class="canva-status-item">|</span>
+                  <div class="canva-zoom-controls">
+                    <button class="canva-zoom-btn" id="canva-zoom-out">−</button>
+                    <span class="canva-zoom-label" id="canva-zoom-label">75%</span>
+                    <button class="canva-zoom-btn" id="canva-zoom-in">+</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- RIGHT: Properties Panel -->
+              <div class="canva-right-panel" id="canva-right-panel">
+                <div class="canva-props-empty" id="canva-props-empty">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 9h6M9 12h6M9 15h4"/></svg>
+                  <p style="margin:0;color:#475569;font-size:12px;">Select an element to edit properties</p>
+                </div>
+
+                <!-- Text element properties -->
+                <div id="canva-props-el" style="display:none;">
+                  <h4 class="canva-props-section-title">Text Properties</h4>
+                  <div class="cp-row">
+                    <label class="cp-label">Font</label>
+                    <select id="cp-font-family" class="cp-select">
+                      <option value="Inter, sans-serif">Inter</option>
+                      <option value="Outfit, sans-serif">Outfit</option>
+                      <option value="Georgia, serif">Georgia</option>
+                      <option value="'Courier New', monospace">Courier New</option>
+                    </select>
+                  </div>
+                  <div class="cp-row">
+                    <label class="cp-label">Weight</label>
+                    <select id="cp-font-weight" class="cp-select">
+                      <option value="300">Light</option>
+                      <option value="400">Regular</option>
+                      <option value="600">Semibold</option>
+                      <option value="700" selected>Bold</option>
+                      <option value="800">Extrabold</option>
+                    </select>
+                  </div>
+                  <div class="cp-row">
+                    <label class="cp-label">Size</label>
+                    <input type="range" id="cp-font-size" min="8" max="120" value="32" style="flex:1;accent-color:#6366f1;">
+                    <span class="cp-val" id="cp-font-size-val">32px</span>
+                  </div>
+                  <div class="cp-row">
+                    <label class="cp-label">Color</label>
+                    <input type="color" id="cp-text-color" value="#ffffff" style="width:36px;height:28px;padding:2px;border-radius:6px;border:1px solid rgba(255,255,255,0.1);background:transparent;cursor:pointer;">
+                    <input type="text" id="cp-text-hex" class="cp-text-input" value="#ffffff" style="flex:1;">
+                  </div>
+                  <div class="cp-row">
+                    <label class="cp-label">Opacity</label>
+                    <input type="range" id="cp-opacity" min="10" max="100" value="100" style="flex:1;accent-color:#6366f1;">
+                    <span class="cp-val" id="cp-opacity-val">100%</span>
+                  </div>
+                  <div class="cp-row">
+                    <label class="cp-label">Spacing</label>
+                    <input type="range" id="cp-letter-spacing" min="-2" max="20" value="0" style="flex:1;accent-color:#6366f1;">
+                    <span class="cp-val" id="cp-letter-spacing-val">0px</span>
+                  </div>
+                  <div class="cp-row">
+                    <label class="cp-label">Line Ht.</label>
+                    <input type="range" id="cp-line-height" min="8" max="30" value="14" style="flex:1;accent-color:#6366f1;">
+                    <span class="cp-val" id="cp-line-height-val">1.4</span>
+                  </div>
+                  <h4 class="canva-props-section-title" style="margin-top:12px;">Background Fill</h4>
+                  <div class="cp-row">
+                    <label class="cp-label">Fill</label>
+                    <input type="color" id="cp-bg-fill" value="#00000000" style="width:36px;height:28px;padding:2px;border-radius:6px;border:1px solid rgba(255,255,255,0.1);background:transparent;cursor:pointer;">
+                    <input type="text" id="cp-bg-fill-hex" class="cp-text-input" value="transparent" style="flex:1;">
+                  </div>
+                  <div class="cp-row">
+                    <label class="cp-label">Padding</label>
+                    <input type="range" id="cp-padding" min="0" max="40" value="4" style="flex:1;accent-color:#6366f1;">
+                    <span class="cp-val" id="cp-padding-val">4px</span>
+                  </div>
+                  <div class="cp-row">
+                    <label class="cp-label">Radius</label>
+                    <input type="range" id="cp-border-radius" min="0" max="40" value="0" style="flex:1;accent-color:#6366f1;">
+                    <span class="cp-val" id="cp-border-radius-val">0px</span>
+                  </div>
+                  <h4 class="canva-props-section-title" style="margin-top:12px;">Position</h4>
+                  <div class="cp-row">
+                    <label class="cp-label">X</label>
+                    <input type="number" id="cp-pos-x" class="cp-num-input" value="40">
+                    <label class="cp-label" style="margin-left:8px;">Y</label>
+                    <input type="number" id="cp-pos-y" class="cp-num-input" value="100">
+                  </div>
+                  <div class="cp-row">
+                    <label class="cp-label">Width</label>
+                    <input type="number" id="cp-width" class="cp-num-input" value="520">
+                  </div>
+                  <div style="margin-top:8px;">
+                    <button class="canva-add-text-btn" id="cp-btn-duplicate" style="margin-bottom:4px;">⧉ Duplicate Element</button>
+                    <button class="canva-add-text-btn" id="cp-btn-bring-front" style="margin-bottom:4px;">↑ Bring to Front</button>
+                    <button class="canva-add-text-btn" id="cp-btn-send-back">↓ Send to Back</button>
+                  </div>
+                </div>
+
+                <!-- Background properties (always shown) -->
+                <div id="canva-props-bg" style="border-top:1px solid rgba(255,255,255,0.06);padding-top:12px;margin-top:4px;">
+                  <h4 class="canva-props-section-title">Canvas Background</h4>
+                  <div class="cp-row">
+                    <label class="cp-label">Color</label>
+                    <input type="color" id="cp-canvas-bg" value="#00A86B" style="width:36px;height:28px;padding:2px;border-radius:6px;border:1px solid rgba(255,255,255,0.1);background:transparent;cursor:pointer;">
+                  </div>
+                  <div class="cp-row">
+                    <label class="cp-label">Size</label>
+                    <span style="font-size:11px;color:#94a3b8;">600 × 800 px</span>
+                  </div>
+                </div>
+              </div>
+
+            </div><!-- /.canva-editor -->
+          </div><!-- /.canva-editor-wrap -->
         </section>
 
         <!-- 3. BULK OUTREACH VIEW (Dedicated Page) -->
@@ -682,6 +863,8 @@
   <!-- TOAST CONTAINER -->
   <div class="toast-container" id="toast-container"></div>
 
+  <!-- html2canvas for poster PNG/JPG export -->
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
   <!-- JavaScript Logics -->
   <script src="app.js"></script>
 </body>
