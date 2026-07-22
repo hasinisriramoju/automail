@@ -173,7 +173,7 @@ const wrapInEmailTemplate = (bodyHtml, subject) => {
           <!-- Header -->
           <tr>
             <td style="background: #00A86B; background: linear-gradient(135deg, #00A86B 0%, #008a58 100%); padding: 24px 32px;">
-              <p style="margin:0; font-size:20px; font-weight:bold; color:#ffffff; letter-spacing:0.5px;">⚡ OnIT India</p>
+              <p style="margin:0; font-size:20px; font-weight:bold; color:#ffffff; letter-spacing:0.5px;"><img src="onitindia-logo.png" alt="OnIT India" style="height:28px; vertical-align:middle; background:#ffffff; padding:3px 8px; border-radius:4px; margin-right:8px;">OnIT India</p>
               <p style="margin:4px 0 0; font-size:12px; color:#ffffff; opacity:0.92;">Powering Businesses with Smart Technology</p>
             </td>
           </tr>

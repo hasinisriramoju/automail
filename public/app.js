@@ -22,10 +22,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   })();
 
-  /**
-   * Auth-aware fetch wrapper — attaches Bearer token to every request.
-   * If the server returns 401, redirects to /login.
-   */
   const authFetch = async (url, options = {}) => {
     const token = getToken();
     const headers = {
@@ -57,19 +53,23 @@ document.addEventListener('DOMContentLoaded', () => {
   const API_BASE = '/api';
 
   // ─── DOM ELEMENTS ────────────────────────────────────────────────────────────
-  // Navigation Tabs
   const tabBtnDashboard = document.getElementById('tab-btn-dashboard');
+  const tabBtnTemplates = document.getElementById('tab-btn-templates');
+  const tabBtnBulkOutreach = document.getElementById('tab-btn-bulk-outreach');
   const tabBtnRecipients = document.getElementById('tab-btn-recipients');
   const tabBtnAddProspects = document.getElementById('tab-btn-add-prospects');
   const tabBtnSettings = document.getElementById('tab-btn-settings');
+
   const panelDashboard = document.getElementById('panel-dashboard');
+  const panelTemplates = document.getElementById('panel-templates');
+  const panelBulkOutreach = document.getElementById('panel-bulk-outreach');
   const panelRecipients = document.getElementById('panel-recipients');
   const panelAddProspects = document.getElementById('panel-add-prospects');
   const panelSettings = document.getElementById('panel-settings');
+
   const btnGotoAddProspects = document.getElementById('btn-goto-add-prospects');
   const pageTitle = document.getElementById('page-title');
   const pageSubtitle = document.getElementById('page-subtitle');
-
 
   // Stats
   const statSent = document.getElementById('stat-sent');
@@ -81,8 +81,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const systemConsole = document.getElementById('system-console');
 
   // Tables
-  const tableRecentEmails = document.getElementById('table-recent-emails').querySelector('tbody');
-  const tableRecipients = document.getElementById('table-recipients').querySelector('tbody');
+  const tableRecentEmails = document.getElementById('table-recent-emails')?.querySelector('tbody');
+  const tableRecipients = document.getElementById('table-recipients')?.querySelector('tbody');
 
   // Search & Refresh
   const recipientSearch = document.getElementById('recipient-search');
@@ -91,6 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Forms & Inputs
   const formSingleLead = document.getElementById('form-single-lead');
   const formBrandProfile = document.getElementById('form-brand-profile');
+
   // Multi-select recipient picker
   const msWrap     = document.getElementById('recipient-multiselect-wrap');
   const msTrigger  = document.getElementById('recipient-multiselect-trigger');
@@ -98,103 +99,32 @@ document.addEventListener('DOMContentLoaded', () => {
   const msOptions  = document.getElementById('multiselect-options');
   const msSearch   = document.getElementById('multiselect-search');
   const msLabel    = document.getElementById('multiselect-label');
-  const msAllChk   = document.getElementById('multiselect-all');
 
-  /** Open / close */
-  msTrigger.addEventListener('click', () => {
-    msWrap.classList.toggle('open');
-    msTrigger.classList.toggle('open');
-    if (msWrap.classList.contains('open')) msSearch.focus();
-  });
-  document.addEventListener('click', (e) => {
-    if (!msWrap.contains(e.target)) {
-      msWrap.classList.remove('open');
-      msTrigger.classList.remove('open');
-    }
-  });
-
-  /** Search filter */
-  msSearch.addEventListener('input', () => {
-    const q = msSearch.value.toLowerCase();
-    msOptions.querySelectorAll('.multiselect-option:not(.multiselect-all-option)').forEach(opt => {
-      const txt = opt.querySelector('.multiselect-option-text').textContent.toLowerCase();
-      opt.style.display = txt.includes(q) ? '' : 'none';
-    });
-  });
-
-  /** "All" checkbox logic */
-  msAllChk.addEventListener('change', () => {
-    const all = msAllChk.checked;
-    msOptions.querySelectorAll('input[type="checkbox"]:not(#multiselect-all)').forEach(cb => {
-      cb.checked = false;
-    });
-    updateMultiselectLabel();
-  });
-
-  /** Individual checkbox logic */
-  msOptions.addEventListener('change', (e) => {
-    if (e.target === msAllChk) return;
-    if (e.target.type === 'checkbox') {
-      // If any individual is selected, uncheck "All"
-      msAllChk.checked = false;
-      updateMultiselectLabel();
-    }
-  });
-
-  function updateMultiselectLabel() {
-    const checked = [...msOptions.querySelectorAll('input[type="checkbox"]:not(#multiselect-all):checked')];
-    if (checked.length === 0) {
-      msAllChk.checked = true;
-      msLabel.innerHTML = `All Available Recipients`;
-    } else if (checked.length === 1) {
-      msLabel.textContent = checked[0].closest('.multiselect-option').querySelector('.multiselect-option-text').textContent;
-    } else {
-      msLabel.innerHTML = `${checked.length} groups selected <span class="multiselect-count-badge">${checked.length}</span>`;
-    }
-  }
-
-  /** Returns array of selected recipient IDs, or empty array = all */
-  function getSelectedRecipientIds() {
-    if (msAllChk.checked) return [];
-    const checked = [...msOptions.querySelectorAll('input[type="checkbox"]:not(#multiselect-all):checked')];
-    return checked.map(cb => cb.value).filter(Boolean);
-  }
-
-  const campaignOutreachType = document.getElementById('campaign-outreach-type');
-
-  const campaignHint = document.getElementById('campaign-hint');
+  // Campaign Form Controls
   const btnCampaignGenerate = document.getElementById('btn-campaign-generate');
-  const btnCampaignSend = document.getElementById('btn-campaign-send');
-  const btnRetryFailed = document.getElementById('btn-retry-failed');
-  const btnLogout = document.getElementById('btn-logout');
+  const btnCampaignSend     = document.getElementById('btn-campaign-send');
+  const btnRetryFailed      = document.getElementById('btn-retry-failed');
+  const campaignHintInput   = document.getElementById('campaign-hint');
+  const campaignTypeSelect  = document.getElementById('campaign-outreach-type');
 
-  // ─── LOGOUT HANDLER ───────────────────────────────────────────────────────────
-  if (btnLogout) {
-    btnLogout.addEventListener('click', async () => {
-      try {
-        const token = getToken();
-        await fetch('/api/auth/logout', {
-          method: 'POST',
-          headers: token ? { 'Authorization': `Bearer ${token}` } : {},
-          credentials: 'include',
-        });
-      } catch (e) { /* ignore network errors on logout */ }
-      localStorage.removeItem(AUTH_TOKEN_KEY);
-      window.location.href = '/login';
-    });
-  }
+  // Progress Bars
+  const bulkProgressWrap  = document.getElementById('bulk-progress-wrap');
+  const bulkProgressBar   = document.getElementById('bulk-progress-bar');
+  const bulkProgressCount = document.getElementById('bulk-progress-count');
+  const bulkProgressLabel = document.getElementById('bulk-progress-label');
 
+  const sendProgressWrap  = document.getElementById('send-progress-wrap');
+  const sendProgressBar   = document.getElementById('send-progress-bar');
+  const sendProgressCount = document.getElementById('send-progress-count');
+  const sendProgressLabel = document.getElementById('send-progress-label');
 
-  // Email Preview Modal
+  // Preview Modal
   const modalEmailPreview = document.getElementById('modal-email-preview');
-  const previewModalSubject = document.getElementById('preview-modal-subject');
-  const previewModalTo = document.getElementById('preview-modal-to');
-  const previewIframe = document.getElementById('preview-iframe');
   const btnClosePreview = document.getElementById('btn-close-preview');
   const btnPreviewCloseBottom = document.getElementById('btn-preview-close-bottom');
   const btnPreviewSend = document.getElementById('btn-preview-send');
 
-  // Add Recipients Tab Switchers
+  // Add Methods Switcher
   const btnMethodSingle = document.getElementById('btn-method-single');
   const btnMethodBulk = document.getElementById('btn-method-bulk');
   const formBulkLeads = document.getElementById('form-bulk-leads');
@@ -252,11 +182,11 @@ document.addEventListener('DOMContentLoaded', () => {
   let _confirmCallback = null;
 
   function showCustomConfirm(title, message, confirmLabel, onOk) {
+    if (!modalConfirm) { if (confirm(message)) onOk(); return; }
     confirmTitle.textContent = title;
     confirmMessage.textContent = message;
     btnConfirmOk.textContent = confirmLabel;
     
-    // Set colors based on label/action
     if (confirmLabel.toLowerCase().includes('delete') || confirmLabel.toLowerCase().includes('remove')) {
       btnConfirmOk.style.backgroundColor = 'var(--color-rose)';
     } else {
@@ -267,19 +197,20 @@ document.addEventListener('DOMContentLoaded', () => {
     modalConfirm.classList.add('active');
   }
 
-  // Bind Custom Confirm Modal Button Handlers
-  btnConfirmCancel.addEventListener('click', () => {
-    modalConfirm.classList.remove('active');
-    _confirmCallback = null;
-  });
+  if (btnConfirmCancel) {
+    btnConfirmCancel.addEventListener('click', () => {
+      modalConfirm.classList.remove('active');
+      _confirmCallback = null;
+    });
+  }
 
-  btnConfirmOk.addEventListener('click', () => {
-    modalConfirm.classList.remove('active');
-    if (_confirmCallback) {
-      _confirmCallback();
-    }
-    _confirmCallback = null;
-  });
+  if (btnConfirmOk) {
+    btnConfirmOk.addEventListener('click', () => {
+      modalConfirm.classList.remove('active');
+      if (_confirmCallback) { _confirmCallback(); }
+      _confirmCallback = null;
+    });
+  }
 
   // ─── INITIALIZATION ──────────────────────────────────────────────────────────
   function init() {
@@ -287,23 +218,24 @@ document.addEventListener('DOMContentLoaded', () => {
     setupAccordions();
     setupCsvUploader();
     bindFormSubmissions();
+    setupTemplateStudio();
+    setupPosterStudio();
     fetchStats();
     fetchRecipients();
     fetchRecentEmails();
     fetchProfile();
     
-    // Refresh button
-    btnRefreshRecent.addEventListener('click', () => {
-      fetchRecentEmails();
-      fetchStats();
-      showToast('Recents updated', 'info');
-    });
+    if (btnRefreshRecent) {
+      btnRefreshRecent.addEventListener('click', () => {
+        fetchRecentEmails();
+        fetchStats();
+        showToast('Recents updated', 'info');
+      });
+    }
 
-    // Close Composer Drawer
-    btnCloseDrawer.addEventListener('click', closeComposerDrawer);
-    btnDrawerCancel.addEventListener('click', closeComposerDrawer);
+    if (btnCloseDrawer) btnCloseDrawer.addEventListener('click', closeComposerDrawer);
+    if (btnDrawerCancel) btnDrawerCancel.addEventListener('click', closeComposerDrawer);
 
-    // Email Preview Modal close buttons
     if (btnClosePreview) btnClosePreview.addEventListener('click', () => modalEmailPreview.classList.remove('active'));
     if (btnPreviewCloseBottom) btnPreviewCloseBottom.addEventListener('click', () => modalEmailPreview.classList.remove('active'));
     if (btnPreviewSend) {
@@ -356,294 +288,22 @@ document.addEventListener('DOMContentLoaded', () => {
       logToConsole('[System] Auto-refreshed stats and email list.');
     }, 30000);
 
-    // Retry All Failed Button
-    if (btnRetryFailed) {
-      btnRetryFailed.addEventListener('click', async () => {
-        const failedEmails = state.allEmails.filter(e => e.status === 'failed');
-        if (failedEmails.length === 0) { showToast('No failed emails to retry.', 'info'); return; }
-        showCustomConfirm(
-          'Retry All Failed Emails',
-          `Retry sending ${failedEmails.length} failed email(s)?`,
-          'Retry All',
-          async () => {
-            logToConsole(`[SMTP] Retrying ${failedEmails.length} failed emails...`);
-            let successCount = 0, failCount = 0;
-            for (const e of failedEmails) {
-              const emailAddress = e.recipientId?.email || 'N/A';
-              try {
-                const res = await authFetch(`${API_BASE}/emails/${e._id}/send`, { method: 'POST' });
-                const data = await res.json();
-                if (data.success) { successCount++; logToConsole(`[SMTP] ✓ Retry success: ${emailAddress}`); }
-                else { failCount++; logToConsole(`[SMTP] ✗ Retry failed: ${emailAddress}: ${data.error}`, 'error'); }
-              } catch { failCount++; }
-              await new Promise(r => setTimeout(r, 2000));
-            }
-            logToConsole(`[SMTP] Retry complete. Success: ${successCount}, Failed: ${failCount}`);
-            showToast(`Retry done: ${successCount} sent, ${failCount} failed`, successCount > 0 ? 'success' : 'error');
-            fetchRecentEmails(); fetchStats();
-          }
-        );
-      });
-    }
-
-    // Event delegation for Recent Emails Table actions
-    tableRecipients.addEventListener('click', async (e) => {
-      const genBtn = e.target.closest('.btn-generate-recipient-email');
-      if (genBtn) {
-        e.preventDefault();
-        const id = genBtn.getAttribute('data-id');
-        triggerEmailGenerationPipeline(id);
-        return;
-      }
-
-      const deleteBtn = e.target.closest('.btn-delete-recipient');
-      if (deleteBtn) {
-        e.preventDefault();
-        const id = deleteBtn.getAttribute('data-id');
-        console.log('[Delete] Button clicked via delegation. Recipient ID:', id);
-        
-        showCustomConfirm(
-          "Delete Recipient", 
-          "Are you sure you want to delete this recipient? This will not delete their generated emails, but will remove their profile.", 
-          "Delete", 
-          async () => {
-            try {
-              console.log('[Delete] Sending request: DELETE /api/recipients/' + id);
-              const res = await authFetch(`${API_BASE}/recipients/${id}`, { method: 'DELETE' });
-              const data = await res.json();
-              console.log('[Delete] Server response received:', data);
-              
-              if (data.success) {
-                showToast('Recipient deleted successfully', 'success');
-                logToConsole(`[Leads] Deleted recipient ID: ${id}`);
-                fetchRecipients();
-              } else {
-                showToast(`Failed to delete: ${data.error || 'Server error'}`, 'error');
-              }
-            } catch (err) {
-              console.error('[Delete] Fetch error:', err);
-              showToast('Failed to delete recipient (network error)', 'error');
-            }
-          }
-        );
-        return;
-      }
+    // Logout
+    document.getElementById('btn-logout')?.addEventListener('click', async () => {
+      try {
+        await fetch('/api/auth/logout', { method: 'POST', headers: { 'Authorization': `Bearer ${getToken()}` }, credentials: 'include' });
+      } catch {}
+      localStorage.removeItem(AUTH_TOKEN_KEY);
+      window.location.href = '/login';
     });
-
-  /** Ensure HTML content has OnIT Green (#00A86B) header formatting */
-  function ensureGreenHeader(html, subject) {
-    if (!html) return '';
-    let updated = html
-      .replace(/background:\s*linear-gradient\([^)]*\)/gi, 'background: #00A86B; background: linear-gradient(135deg, #00A86B 0%, #008a58 100%)')
-      .replace(/background:\s*#1e3a5f/gi, 'background: #00A86B')
-      .replace(/background:\s*#2563EB/gi, 'background: #00A86B')
-      .replace(/border-left:\s*3px solid #[0-9a-fA-F]+/gi, 'border-left: 3px solid #00A86B')
-      .replace(/color:\s*#2563EB/gi, 'color: #00A86B')
-      .replace(/color:\s*#1e40af/gi, 'color: #0F172A')
-      .replace(/color:\s*#a5c8ff/gi, 'color: #ffffff');
-
-    if (!updated.includes('OnIT India') && !updated.includes('<!DOCTYPE html>')) {
-      updated = `<!DOCTYPE html>
-<html lang="en">
-<head><meta charset="UTF-8"><title>${subject || 'Email Preview'}</title></head>
-<body style="margin:0; padding:0; background-color:#f4f4f7; font-family: Arial, Helvetica, sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f7; padding: 24px 0;">
-    <tr><td align="center">
-      <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px; width:100%; background:#ffffff; border-radius:8px; overflow:hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
-        <tr>
-          <td style="background: #00A86B; background: linear-gradient(135deg, #00A86B 0%, #008a58 100%); padding: 24px 32px;">
-            <p style="margin:0; font-size:20px; font-weight:bold; color:#ffffff; letter-spacing:0.5px;">⚡ OnIT India</p>
-            <p style="margin:4px 0 0; font-size:12px; color:#ffffff; opacity:0.92;">Powering Businesses with Smart Technology</p>
-          </td>
-        </tr>
-        <tr>
-          <td style="padding: 32px; color:#333333; font-size:15px; line-height:1.7;">
-            ${updated}
-          </td>
-        </tr>
-        <tr><td style="padding: 0 32px;"><hr style="border:none; border-top:1px solid #e5e7eb; margin:0;"></td></tr>
-        <tr>
-          <td style="padding: 24px 32px; background:#f9fafb;">
-            <table cellpadding="0" cellspacing="0">
-              <tr>
-                <td style="border-left: 3px solid #00A86B; padding-left: 12px;">
-                  <p style="margin:0; font-size:14px; font-weight:bold; color:#0F172A;">OnIT India</p>
-                  <p style="margin:2px 0 8px; font-size:12px; color:#6b7280;">Powering Businesses with Smart Technology</p>
-                  <p style="margin:2px 0; font-size:12px; color:#374151;">🌐 <a href="https://www.onitindia.com" style="color:#00A86B; text-decoration:none;">www.onitindia.com</a></p>
-                  <p style="margin:2px 0; font-size:12px; color:#374151;">🔗 <a href="https://www.linkedin.com/company/onit-india" style="color:#00A86B; text-decoration:none;">LinkedIn</a></p>
-                  <p style="margin:2px 0; font-size:12px; color:#374151;">📧 <a href="mailto:outreach@onitindia.com" style="color:#00A86B; text-decoration:none;">outreach@onitindia.com</a></p>
-                </td>
-              </tr>
-            </table>
-          </td>
-        </tr>
-        <tr>
-          <td style="padding:16px 32px; background:#0F172A; text-align:center;">
-            <p style="margin:0; font-size:11px; color:#9ca3af;">This email was sent by OnIT India's AI Outreach Platform. Please reply to unsubscribe.</p>
-          </td>
-        </tr>
-      </table>
-    </td></tr>
-  </table>
-</body>
-</html>`;
-    }
-    return updated;
-  }
-
-  // Event delegation for Recent Emails Table actions
-  tableRecentEmails.addEventListener('click', async (e) => {
-    // Preview button
-    const previewBtn = e.target.closest('[title="Preview Email"]');
-    if (previewBtn) {
-      e.preventDefault();
-      const id = previewBtn.getAttribute('data-id');
-      const emailData = state.allEmails.find(em => em._id === id);
-      if (emailData) {
-        state.previewEmailId = id;
-        previewModalSubject.textContent = emailData.subject || 'Email Preview';
-        previewModalTo.textContent = `To: ${emailData.recipientId?.email || ''} — ${emailData.recipientId?.companyName || ''}`;
-        const iframeDoc = previewIframe.contentDocument || previewIframe.contentWindow.document;
-        iframeDoc.open();
-        let content = emailData.bodyHtml || `<p style="font-family:sans-serif;padding:24px;">${emailData.bodyText || 'No email body.'}</p>`;
-        iframeDoc.write(ensureGreenHeader(content, emailData.subject));
-        iframeDoc.close();
-        btnPreviewSend.style.display = emailData.status === 'sent' ? 'none' : 'inline-flex';
-        modalEmailPreview.classList.add('active');
-      }
-      return;
-    }
-
-
-      // Follow-up button
-      const followUpBtn = e.target.closest('.btn-followup');
-      if (followUpBtn) {
-        e.preventDefault();
-        const id = followUpBtn.getAttribute('data-id');
-        const emailData = state.allEmails.find(em => em._id === id);
-        showCustomConfirm(
-          'Generate Follow-Up Email',
-          `Generate a polite follow-up email to ${emailData?.recipientId?.companyName || 'this recipient'}?`,
-          'Generate Follow-Up',
-          async () => {
-            showToast('Generating follow-up email...', 'info');
-            logToConsole(`[AI] Generating follow-up for email ${id}`);
-            try {
-              const res = await authFetch(`${API_BASE}/emails/${id}/followup`, { method: 'POST',
-                headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) });
-              const data = await res.json();
-              if (data.success) {
-                showToast('Follow-up draft created! Check the Drafts tab.', 'success');
-                logToConsole(`[AI] ✓ Follow-up draft created: ${data.data._id}`);
-                fetchRecentEmails(); fetchStats();
-              } else {
-                showToast(`Failed: ${data.error}`, 'error');
-              }
-            } catch { showToast('Network error generating follow-up', 'error'); }
-          }
-        );
-        return;
-      }
-      const openBtn = e.target.closest('.btn-open-composer');
-      if (openBtn) {
-        e.preventDefault();
-        const id = openBtn.getAttribute('data-id');
-        openComposerDrawer(id);
-        return;
-      }
-
-      const sendBtn = e.target.closest('.btn-send-now');
-      if (sendBtn) {
-        e.preventDefault();
-        const id = sendBtn.getAttribute('data-id');
-        sendBtn.setAttribute('disabled', 'true');
-        logToConsole(`[SMTP] Direct dispatch requested for Email ID: ${id}`);
-        showToast('Sending email...', 'info');
-        try {
-          const res = await authFetch(`${API_BASE}/emails/${id}/send`, { method: 'POST' });
-          const data = await res.json();
-          if (data.success) {
-            showToast('Email delivered successfully!', 'success');
-            logToConsole(`[SMTP] ✓ Delivered to: ${data.data?.recipientId?.email || 'recipient'}`);
-            fetchRecentEmails();
-            fetchStats();
-          } else {
-            showToast(`Delivery failed: ${data.error}`, 'error');
-            logToConsole(`[SMTP] ✗ Delivery failed: ${data.error}`, 'error');
-            fetchRecentEmails();
-            fetchStats();
-          }
-        } catch (err) {
-          showToast('Network error during delivery', 'error');
-        }
-        return;
-      }
-
-      const deleteBtn = e.target.closest('.btn-delete-email');
-      if (deleteBtn) {
-        e.preventDefault();
-        const id = deleteBtn.getAttribute('data-id');
-        showCustomConfirm(
-          "Delete Email Draft", 
-          "Are you sure you want to delete this email draft?", 
-          "Delete", 
-          async () => {
-            try {
-              const res = await authFetch(`${API_BASE}/emails/${id}`, { method: 'DELETE' });
-              const data = await res.json();
-              if (data.success) {
-                showToast('Draft deleted', 'success');
-                fetchRecentEmails();
-                fetchStats();
-              }
-            } catch (err) {
-              showToast('Failed to delete draft', 'error');
-            }
-          }
-        );
-        return;
-      }
-    });
-  }
-
-  // ─── TOAST NOTIFICATION ──────────────────────────────────────────────────────
-  function showToast(message, type = 'info') {
-    const container = document.getElementById('toast-container');
-    const toast = document.createElement('div');
-    toast.className = `toast toast-${type}`;
-    
-    let iconSvg = '';
-    if (type === 'success') {
-      iconSvg = `<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>`;
-    } else if (type === 'error') {
-      iconSvg = `<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`;
-    } else {
-      iconSvg = `<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>`;
-    }
-
-    toast.innerHTML = `${iconSvg}<span>${message}</span>`;
-    container.appendChild(toast);
-    
-    setTimeout(() => {
-      toast.style.animation = 'slideInToast 0.2s reverse forwards';
-      setTimeout(() => { toast.remove(); }, 250);
-    }, 4000);
-  }
-
-  // ─── CONSOLE UTILITY ─────────────────────────────────────────────────────────
-  function logToConsole(message, type = 'info') {
-    const timestamp = new Date().toLocaleTimeString();
-    const line = document.createElement('div');
-    line.className = `console-line ${type}`;
-    line.innerHTML = `[${timestamp}] ${message}`;
-    systemConsole.appendChild(line);
-    systemConsole.scrollTop = systemConsole.scrollHeight;
   }
 
   // ─── TAB ROUTING ─────────────────────────────────────────────────────────────
   function setupTabRouting() {
     const tabs = [
       { btn: tabBtnDashboard, panel: panelDashboard, title: 'Outreach Dashboard', subtitle: "Welcome to OnIT India's intelligent email hub." },
+      { btn: tabBtnTemplates, panel: panelTemplates, title: 'Template Studio', subtitle: 'Customize Email and Poster templates with rich formatting and dynamic variables.' },
+      { btn: tabBtnBulkOutreach, panel: panelBulkOutreach, title: 'Bulk Outreach Campaigns', subtitle: 'Schedule, generate, and dispatch automated bulk email campaigns.' },
       { btn: tabBtnRecipients, panel: panelRecipients, title: 'Manage Recipient Leads', subtitle: 'Review, research, and import company profiles.' },
       { btn: tabBtnAddProspects, panel: panelAddProspects, title: 'Add Prospects & Leads', subtitle: 'Register single leads or upload CSV spreadsheet lists in bulk.' },
       { btn: tabBtnSettings, panel: panelSettings, title: 'Brand Configuration', subtitle: "Update OnIT India's services, team, and signature guidelines." }
@@ -657,11 +317,10 @@ document.addEventListener('DOMContentLoaded', () => {
           if (t.panel) t.panel.classList.remove('active');
         });
         tab.btn.classList.add('active');
-        tab.panel.classList.add('active');
-        pageTitle.textContent = tab.title;
-        pageSubtitle.textContent = tab.subtitle;
+        if (tab.panel) tab.panel.classList.add('active');
+        if (pageTitle) pageTitle.textContent = tab.title;
+        if (pageSubtitle) pageSubtitle.textContent = tab.subtitle;
         
-        // Refresh specific tables on switch
         if (tab.panel === panelDashboard) {
           fetchRecentEmails();
           fetchStats();
@@ -679,217 +338,168 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    // Single vs Bulk Lead Switchers
-    btnMethodSingle.addEventListener('click', () => {
+    if (btnMethodSingle && btnMethodBulk) {
+      btnMethodSingle.addEventListener('click', () => {
+        btnMethodSingle.classList.add('active');
+        btnMethodBulk.classList.remove('active');
+        if (formSingleLead) formSingleLead.classList.add('active');
+        if (formBulkLeads) formBulkLeads.classList.remove('active');
+      });
 
-      btnMethodSingle.classList.add('active');
-      btnMethodBulk.classList.remove('active');
-      formSingleLead.classList.add('active');
-      formBulkLeads.classList.remove('active');
-    });
-
-    btnMethodBulk.addEventListener('click', () => {
-      btnMethodBulk.classList.add('active');
-      btnMethodSingle.classList.remove('active');
-      formBulkLeads.classList.add('active');
-      formSingleLead.classList.remove('active');
-    });
+      btnMethodBulk.addEventListener('click', () => {
+        btnMethodBulk.classList.add('active');
+        btnMethodSingle.classList.remove('active');
+        if (formBulkLeads) formBulkLeads.classList.add('active');
+        if (formSingleLead) formSingleLead.classList.remove('active');
+      });
+    }
   }
 
   // ─── ACCORDIONS ──────────────────────────────────────────────────────────────
   function setupAccordions() {
-    const accordions = [
-      { btn: accordionBtnNotes, content: accordionContentNotes },
-      { btn: accordionBtnPrompt, content: accordionContentPrompt }
-    ];
-
-    accordions.forEach(acc => {
-      acc.btn.addEventListener('click', () => {
-        const parent = acc.btn.parentElement;
-        const isActive = parent.classList.contains('active');
-        
-        if (isActive) {
-          parent.classList.remove('active');
-          acc.content.style.maxHeight = '0';
-        } else {
-          parent.classList.add('active');
-          acc.content.style.maxHeight = '350px';
-        }
+    if (accordionBtnNotes && accordionContentNotes) {
+      accordionBtnNotes.addEventListener('click', () => {
+        const isExp = accordionContentNotes.parentElement.classList.toggle('active');
+        accordionContentNotes.style.maxHeight = isExp ? `${accordionContentNotes.scrollHeight}px` : '0';
       });
-    });
+    }
+
+    if (accordionBtnPrompt && accordionContentPrompt) {
+      accordionBtnPrompt.addEventListener('click', () => {
+        const isExp = accordionContentPrompt.parentElement.classList.toggle('active');
+        accordionContentPrompt.style.maxHeight = isExp ? `${accordionContentPrompt.scrollHeight}px` : '0';
+      });
+    }
   }
 
-  // ─── API OPERATIONS ──────────────────────────────────────────────────────────
+  // ─── UTILITIES ───────────────────────────────────────────────────────────────
+  function showToast(message, type = 'info') {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    const bg = type === 'error' ? '#ef4444' : type === 'success' ? '#00A86B' : '#0F172A';
+    toast.style.cssText = `background:${bg};color:#fff;padding:12px 18px;border-radius:10px;font-size:13.5px;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,0.18);margin-top:8px;display:flex;align-items:center;gap:8px;`;
+    toast.textContent = message;
+    container.appendChild(toast);
 
-  // Fetch Stats Banner
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transition = 'opacity 0.3s';
+      setTimeout(() => toast.remove(), 300);
+    }, 4000);
+  }
+
+  function logToConsole(message, level = 'system') {
+    if (!systemConsole) return;
+    const line = document.createElement('div');
+    const colors = { error: '#ef4444', success: '#22c55e', system: '#94a3b8', info: '#94a3b8' };
+    line.style.cssText = `font-family:monospace;font-size:12px;margin-bottom:3px;color:${colors[level] || '#94a3b8'};`;
+    line.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+    systemConsole.appendChild(line);
+    systemConsole.scrollTop = systemConsole.scrollHeight;
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  // ─── STATS FETCHING ──────────────────────────────────────────────────────────
   async function fetchStats() {
     try {
       const res = await authFetch(`${API_BASE}/emails/stats`);
       const data = await res.json();
-      if (data.success) {
-        const byStatus = data.data.byStatus || {};
-        const total = data.data.total || 0;
-        const sentCount   = byStatus.sent     || 0;
-        const draftCount  = byStatus.draft    || 0;
-        const failedCount = byStatus.failed   || 0;
-        const sendingCount= byStatus.sending  || 0;
-        const openedCount = data.data.opened  || 0;
+      if (!data.success) return;
+      const s = data.data;
 
-        statSent.textContent       = sentCount;
-        statDrafts.textContent     = draftCount;
-        statFailed.textContent     = failedCount;
-        statProcessing.textContent = sendingCount;
+      if (statSent) statSent.textContent = s.byStatus?.sent || 0;
+      if (statDrafts) statDrafts.textContent = s.byStatus?.draft || 0;
+      if (statProcessing) statProcessing.textContent = s.byStatus?.sending || 0;
+      if (statFailed) statFailed.textContent = s.byStatus?.failed || 0;
 
-        // Analytics row
-        const rate = total > 0 ? Math.round((sentCount / total) * 100) : 0;
-        const analyticsRate    = document.getElementById('analytics-rate');
-        const analyticsBar     = document.getElementById('analytics-bar');
-        const analyticsFailed  = document.getElementById('analytics-failed');
-        const analyticsOpened  = document.getElementById('analytics-opened');
-        const analyticsTotalEmails = document.getElementById('analytics-total-emails');
-        if (analyticsRate)   analyticsRate.textContent  = total > 0 ? `${rate}%` : '—';
-        if (analyticsBar)    analyticsBar.style.width   = `${rate}%`;
-        if (analyticsFailed) analyticsFailed.textContent = failedCount;
-        if (analyticsOpened) analyticsOpened.textContent = openedCount;
-        if (analyticsTotalEmails) analyticsTotalEmails.textContent = total;
+      const elTotal = document.getElementById('analytics-total-emails');
+      const elRecip = document.getElementById('analytics-total-recipients');
+      const elOpened = document.getElementById('analytics-opened');
+      const elFailed = document.getElementById('analytics-failed');
+      const elRate = document.getElementById('analytics-rate');
+      const elBar = document.getElementById('analytics-bar');
 
-        // Filter counts
-        const countDraft  = document.getElementById('count-draft');
-        const countSent   = document.getElementById('count-sent');
-        const countFailed = document.getElementById('count-failed');
-        const countOpened = document.getElementById('count-opened');
-        if (countDraft)  countDraft.textContent  = draftCount;
-        if (countSent)   countSent.textContent   = sentCount;
-        if (countFailed) countFailed.textContent = failedCount;
-        if (countOpened) countOpened.textContent = openedCount;
+      if (elTotal) elTotal.textContent = s.total || 0;
+      if (elRecip) elRecip.textContent = state.recipients.length || 0;
+      if (elOpened) elOpened.textContent = s.openedCount || 0;
+      if (elFailed) elFailed.textContent = s.byStatus?.failed || 0;
+      if (elRate) elRate.textContent = `${s.deliveryRate || 0}%`;
+      if (elBar) elBar.style.width = `${s.deliveryRate || 0}%`;
 
-        // Enable Send button when there are drafts ready
-        if (draftCount > 0) {
-          btnCampaignSend.removeAttribute('disabled');
-        } else {
-          btnCampaignSend.setAttribute('disabled', 'true');
-        }
+      const filterCountDraft = document.getElementById('count-draft');
+      const filterCountSent = document.getElementById('count-sent');
+      const filterCountFailed = document.getElementById('count-failed');
+      const filterCountOpened = document.getElementById('count-opened');
 
-        // Show/hide Retry Failed button
-        if (btnRetryFailed) {
-          btnRetryFailed.style.display = failedCount > 0 ? 'flex' : 'none';
-        }
-      }
+      if (filterCountDraft) filterCountDraft.textContent = s.byStatus?.draft || 0;
+      if (filterCountSent) filterCountSent.textContent = s.byStatus?.sent || 0;
+      if (filterCountFailed) filterCountFailed.textContent = s.byStatus?.failed || 0;
+      if (filterCountOpened) filterCountOpened.textContent = s.openedCount || 0;
+
+      // Bulk page stats sync
+      const bulkTotal = document.getElementById('bulk-stat-total');
+      const bulkDrafts = document.getElementById('bulk-stat-drafts');
+      const bulkCompleted = document.getElementById('bulk-stat-completed');
+      const bulkFailed = document.getElementById('bulk-stat-failed');
+
+      if (bulkTotal) bulkTotal.textContent = s.total || 0;
+      if (bulkDrafts) bulkDrafts.textContent = s.byStatus?.draft || 0;
+      if (bulkCompleted) bulkCompleted.textContent = s.byStatus?.sent || 0;
+      if (bulkFailed) bulkFailed.textContent = s.byStatus?.failed || 0;
+
     } catch (err) {
-      console.error('Error fetching stats:', err);
+      logToConsole(`Failed fetching stats: ${err.message}`, 'error');
     }
   }
 
-  // Fetch Brand Profile
-  async function fetchProfile() {
-    try {
-      const res = await authFetch(`${API_BASE}/profile`);
-      const data = await res.json();
-      if (data.success) {
-        state.profile = data.data;
-        populateProfileForm(data.data);
-      }
-    } catch (err) {
-      console.error('Error loading brand profile:', err);
-    }
-  }
-
-  // Fetch Recipients List
+  // ─── RECIPIENTS FETCHING & RENDERING ─────────────────────────────────────────
   async function fetchRecipients() {
     try {
-      const searchVal = recipientSearch.value.trim();
-      const url = searchVal ? `${API_BASE}/recipients?search=${encodeURIComponent(searchVal)}` : `${API_BASE}/recipients`;
-      const res = await fetch(url);
+      const res = await authFetch(`${API_BASE}/recipients`);
       const data = await res.json();
       if (data.success) {
         state.recipients = data.data;
-        renderRecipientsTable(data.data);
-        populateCampaignDropdown(data.data);
-        // Update analytics total recipients
-        const el = document.getElementById('analytics-total-recipients');
-        if (el) el.textContent = data.data.length;
+        renderRecipientsTable(state.recipients);
+        populateCampaignDropdown(state.recipients);
       }
     } catch (err) {
-      console.error('Error loading recipients:', err);
+      logToConsole(`Failed loading recipients: ${err.message}`, 'error');
     }
   }
 
-  // Fetch Recent Emails List
-  async function fetchRecentEmails() {
-    try {
-      const res = await authFetch(`${API_BASE}/emails`);
-      const data = await res.json();
-      if (data.success) {
-        state.allEmails = data.data;
-        state.emails = data.data;
-        applyEmailFilter(state.activeEmailFilter);
-      }
-    } catch (err) {
-      console.error('Error loading recent emails:', err);
-    }
-  }
-
-  function applyEmailFilter(filter, searchQuery = '') {
-    state.activeEmailFilter = filter;
-    const query = searchQuery.toLowerCase();
-    let filtered = state.allEmails;
-
-    // Status filter
-    if (filter === 'opened') {
-      filtered = filtered.filter(e => e.openCount > 0);
-    } else if (filter !== 'all') {
-      filtered = filtered.filter(e => e.status === filter);
-    }
-
-    // Text search
-    if (query) {
-      filtered = filtered.filter(e =>
-        (e.subject || '').toLowerCase().includes(query) ||
-        (e.recipientId?.email || '').toLowerCase().includes(query) ||
-        (e.recipientId?.companyName || '').toLowerCase().includes(query)
-      );
-    }
-
-    state.emails = filtered;
-    renderRecentEmailsTable(filtered);
-    // Update active tab styling
-    document.querySelectorAll('.filter-tab').forEach(t => {
-      t.classList.toggle('active', t.dataset.filter === filter);
-    });
-  }
-
-  // ─── RENDERING DATA ──────────────────────────────────────────────────────────
-
-  // Recipients Table
   function renderRecipientsTable(recipients) {
+    if (!tableRecipients) return;
     tableRecipients.innerHTML = '';
+    
     if (recipients.length === 0) {
-      tableRecipients.innerHTML = `<tr><td colspan="6" class="text-center text-muted">No recipients found in database.</td></tr>`;
+      tableRecipients.innerHTML = `<tr><td colspan="6" class="text-center text-muted">No leads in database. Add prospects using the Add Prospects tab.</td></tr>`;
       return;
     }
 
     recipients.forEach(r => {
       const tr = document.createElement('tr');
-      const isResearched = r.researchData && r.researchData.scrapedAt;
-      const statusBadge = isResearched 
-        ? `<span class="badge badge-sent">Researched</span>`
-        : `<span class="badge badge-new">Pending</span>`;
-      
       tr.innerHTML = `
-        <td><strong>${escapeHtml(r.companyName)}</strong></td>
-        <td>
-          ${escapeHtml(r.contactName || 'N/A')} <span class="text-muted" style="font-size:11px;">${r.contactTitle ? `(${escapeHtml(r.contactTitle)})` : ''}</span>
-          <br/>
-          <span class="text-muted" style="font-size:11.5px; font-weight:500;">${escapeHtml(r.email)}</span>
-        </td>
-        <td><span class="badge badge-draft">${escapeHtml(r.outreachType)}</span></td>
-        <td><a href="${escapeHtml(r.website || '#')}" target="_blank" class="text-indigo">${escapeHtml(r.website || 'N/A')}</a></td>
-        <td>${statusBadge}</td>
+        <td><strong>${escapeHtml(r.companyName)}</strong><br/><span style="font-size:11px;" class="text-muted">${escapeHtml(r.contactName || '')} ${r.contactTitle ? `(${escapeHtml(r.contactTitle)})` : ''}</span></td>
+        <td>${escapeHtml(r.email)}</td>
+        <td><span class="badge badge-draft">${escapeHtml(r.outreachType || 'partnership')}</span></td>
+        <td><a href="${escapeHtml(r.website || '#')}" target="_blank" style="color:var(--color-indigo);">${escapeHtml(r.website || '—')}</a></td>
+        <td>${r.researchData?.scrapedAt ? '<span class="badge badge-sent">✓ Enriched</span>' : '<span class="badge badge-draft">Pending</span>'}</td>
         <td class="actions-cell">
-          <button class="btn-icon info btn-generate-recipient-email" data-id="${r._id}" title="Generate Personalized Email">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          <button class="btn-icon success btn-generate-single" data-id="${r._id}" title="Generate AI Email">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
           </button>
-          <button class="btn-icon btn-delete-recipient" data-id="${r._id}" title="Delete Recipient">
+          <button class="btn-icon btn-delete-recipient" data-id="${r._id}" title="Delete Lead">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
           </button>
         </td>
@@ -897,14 +507,84 @@ document.addEventListener('DOMContentLoaded', () => {
       tableRecipients.appendChild(tr);
     });
 
-    // Event listeners are bound via delegation in init
+    // Delegate table actions
+    tableRecipients.querySelectorAll('.btn-generate-single').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-id');
+        triggerSingleEmailGeneration(id);
+      });
+    });
+
+    tableRecipients.querySelectorAll('.btn-delete-recipient').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-id');
+        showCustomConfirm("Delete Lead", "Delete this recipient permanently?", "Delete", async () => {
+          try {
+            const res = await authFetch(`${API_BASE}/recipients/${id}`, { method: 'DELETE' });
+            const data = await res.json();
+            if (data.success) {
+              showToast('Recipient deleted', 'success');
+              fetchRecipients();
+            }
+          } catch { showToast('Delete failed', 'error'); }
+        });
+      });
+    });
   }
 
-  // Recent Emails Table
+  // Search recipients
+  if (recipientSearch) {
+    recipientSearch.addEventListener('input', (e) => {
+      const q = e.target.value.toLowerCase();
+      const filtered = state.recipients.filter(r =>
+        r.companyName.toLowerCase().includes(q) ||
+        (r.contactName || '').toLowerCase().includes(q) ||
+        r.email.toLowerCase().includes(q)
+      );
+      renderRecipientsTable(filtered);
+    });
+  }
+
+  // ─── RECENT EMAILS TABLE ─────────────────────────────────────────────────────
+  async function fetchRecentEmails() {
+    try {
+      const res = await authFetch(`${API_BASE}/emails?limit=100`);
+      const data = await res.json();
+      if (!data.success) return;
+      state.allEmails = data.data;
+      applyEmailFilter(state.activeEmailFilter, document.getElementById('email-search')?.value || '');
+    } catch (err) {
+      logToConsole(`Failed fetching email dispatches: ${err.message}`, 'error');
+    }
+  }
+
+  function applyEmailFilter(filter = 'all', searchQuery = '') {
+    state.activeEmailFilter = filter;
+    let list = state.allEmails;
+
+    if (filter === 'draft') list = list.filter(e => e.status === 'draft');
+    else if (filter === 'sent') list = list.filter(e => e.status === 'sent');
+    else if (filter === 'failed') list = list.filter(e => e.status === 'failed');
+    else if (filter === 'opened') list = list.filter(e => (e.openCount || 0) > 0);
+
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      list = list.filter(e =>
+        (e.subject || '').toLowerCase().includes(q) ||
+        (e.recipientId?.email || '').toLowerCase().includes(q) ||
+        (e.recipientId?.companyName || '').toLowerCase().includes(q)
+      );
+    }
+
+    renderRecentEmailsTable(list);
+  }
+
   function renderRecentEmailsTable(emails) {
+    if (!tableRecentEmails) return;
     tableRecentEmails.innerHTML = '';
+
     if (emails.length === 0) {
-      tableRecentEmails.innerHTML = `<tr><td colspan="6" class="text-center text-muted">No emails found.</td></tr>`;
+      tableRecentEmails.innerHTML = `<tr><td colspan="6" class="text-center text-muted">No dispatches match the current filter.</td></tr>`;
       return;
     }
 
@@ -932,11 +612,11 @@ document.addEventListener('DOMContentLoaded', () => {
         <td>${statusBadge}</td>
         <td class="text-muted" style="font-size:12px;">${formattedDate}</td>
         <td class="actions-cell">
-          <button class="btn-icon" style="color:var(--color-indigo);" title="Preview Email" data-id="${e._id}">
+          <button class="btn-icon btn-preview-email" style="color:var(--color-indigo);" title="Preview Email" data-id="${e._id}">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
           </button>
-          <button class="btn-icon info btn-open-composer" data-id="${e._id}" title="Review &amp; Edit Draft">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4z"/></svg>
+          <button class="btn-icon btn-duplicate-email" style="color:var(--color-indigo);" title="Duplicate Draft" data-id="${e._id}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
           </button>
           ${e.status !== 'sent' ? `
           <button class="btn-icon success btn-send-now" data-id="${e._id}" title="${e.status === 'failed' ? 'Retry Sending' : 'Send Email Immediately'}">
@@ -955,809 +635,483 @@ document.addEventListener('DOMContentLoaded', () => {
       `;
       tableRecentEmails.appendChild(tr);
     });
-  }
 
-  // Populate Recipient Multi-Select
-  function populateCampaignDropdown(recipients) {
-    // Update "All" label count
-    msOptions.querySelector('.multiselect-all-option .multiselect-option-text').textContent =
-      `All Available Recipients (${recipients.length})`;
-
-    // Remove previous individual options
-    msOptions.querySelectorAll('.multiselect-option:not(.multiselect-all-option)').forEach(el => el.remove());
-
-    // Add one checkbox per recipient
-    recipients.forEach(r => {
-      const lbl = document.createElement('label');
-      lbl.className = 'multiselect-option';
-      lbl.innerHTML = `
-        <input type="checkbox" value="${r._id}">
-        <span class="multiselect-check"></span>
-        <span class="multiselect-option-text">${r.companyName} <span style="color:var(--text-muted);font-size:11px">(${r.email})</span></span>
-      `;
-      msOptions.appendChild(lbl);
-    });
-
-    // Reset to "All" state
-    msAllChk.checked = true;
-    msLabel.textContent = `All Available Recipients (${recipients.length})`;
-  }
-
-
-  // Populate Brand Profile form inputs
-  function populateProfileForm(profile) {
-    document.getElementById('profile-company').value = profile.companyName || '';
-    document.getElementById('profile-tagline').value = profile.tagline || '';
-    document.getElementById('profile-email').value = profile.email || '';
-    document.getElementById('profile-website').value = profile.website || '';
-    document.getElementById('profile-about').value = profile.about || '';
-    document.getElementById('profile-mission').value = profile.mission || '';
-    document.getElementById('profile-value').value = profile.valueProposition || '';
-
-    // Services Array
-    if (profile.services) {
-      document.getElementById('profile-services').value = profile.services
-        .map(s => `${s.name}: ${s.description}`)
-        .join('\n');
-    }
-    
-    // Differentiators Array
-    if (profile.differentiators) {
-      document.getElementById('profile-differentiators').value = profile.differentiators.join('\n');
-    }
-
-    document.getElementById('profile-sig-html').value = profile.signatureHtml || '';
-    document.getElementById('profile-sig-plain').value = profile.signaturePlainText || '';
-    document.getElementById('profile-tone-overall').value = profile.toneGuidelines?.overall || '';
-
-    if (profile.toneGuidelines?.avoid) {
-      document.getElementById('profile-tone-avoid').value = profile.toneGuidelines.avoid.join('\n');
-    }
-    if (profile.toneGuidelines?.prefer) {
-      document.getElementById('profile-tone-prefer').value = profile.toneGuidelines.prefer.join('\n');
-    }
-  }
-
-  // ─── FORM SUBMISSIONS ────────────────────────────────────────────────────────
-  function bindFormSubmissions() {
-    
-    // 1. Single Lead Form
-    formSingleLead.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      
-      const payload = {
-        companyName: document.getElementById('lead-company').value.trim(),
-        contactName: document.getElementById('lead-contact').value.trim() || undefined,
-        contactTitle: document.getElementById('lead-title').value.trim() || undefined,
-        email: document.getElementById('lead-email').value.trim(),
-        website: document.getElementById('lead-website').value.trim() || undefined,
-        outreachType: document.getElementById('lead-outreach').value,
-        description: document.getElementById('lead-description').value.trim() || undefined
-      };
-
-      try {
-        const res = await authFetch(`${API_BASE}/recipients`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        const data = await res.json();
-        if (data.success) {
-          showToast('Recipient added successfully!', 'success');
-          logToConsole(`[Leads] Added recipient: ${payload.companyName} (${payload.email})`);
-          formSingleLead.reset();
-          fetchRecipients();
-        } else {
-          showToast(`Error: ${data.error}`, 'error');
-        }
-      } catch (err) {
-        showToast('Network error while adding lead', 'error');
-      }
-    });
-
-    // 2. Brand Settings Form
-    formBrandProfile.addEventListener('submit', async (e) => {
-      e.preventDefault();
-
-      // Convert Services text back to Array of objects
-      const servicesRaw = document.getElementById('profile-services').value.split('\n');
-      const services = [];
-      servicesRaw.forEach(line => {
-        const parts = line.split(':');
-        if (parts.length >= 2) {
-          services.push({
-            name: parts[0].trim(),
-            description: parts.slice(1).join(':').trim()
-          });
-        } else if (line.trim().length > 0) {
-          services.push({
-            name: line.trim(),
-            description: ''
-          });
-        }
-      });
-
-      // Differentiators
-      const differentiators = document.getElementById('profile-differentiators').value
-        .split('\n')
-        .map(l => l.trim())
-        .filter(l => l.length > 0);
-
-      // Avoid list
-      const avoid = document.getElementById('profile-tone-avoid').value
-        .split('\n')
-        .map(l => l.trim())
-        .filter(l => l.length > 0);
-
-      // Prefer list
-      const prefer = document.getElementById('profile-tone-prefer').value
-        .split('\n')
-        .map(l => l.trim())
-        .filter(l => l.length > 0);
-
-      const payload = {
-        companyName: document.getElementById('profile-company').value.trim(),
-        tagline: document.getElementById('profile-tagline').value.trim(),
-        email: document.getElementById('profile-email').value.trim(),
-        website: document.getElementById('profile-website').value.trim(),
-        about: document.getElementById('profile-about').value.trim(),
-        mission: document.getElementById('profile-mission').value.trim(),
-        valueProposition: document.getElementById('profile-value').value.trim(),
-        services,
-        differentiators,
-        signatureHtml: document.getElementById('profile-sig-html').value,
-        signaturePlainText: document.getElementById('profile-sig-plain').value,
-        toneGuidelines: {
-          overall: document.getElementById('profile-tone-overall').value.trim(),
-          avoid,
-          prefer
-        }
-      };
-
-      try {
-        const res = await authFetch(`${API_BASE}/profile`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        const data = await res.json();
-        if (data.success) {
-          showToast('Brand profile updated!', 'success');
-          logToConsole('[Profile] Brand configurations updated successfully.');
-          fetchProfile();
-        } else {
-          showToast(`Error: ${data.error}`, 'error');
-        }
-      } catch (err) {
-        showToast('Network error while saving settings', 'error');
-      }
-    });
-
-    // 3. Campaign Generation Button
-    btnCampaignGenerate.addEventListener('click', async () => {
-      const selectedIds = getSelectedRecipientIds(); // [] = all, [id] = single, [id,id,...] = multiple
-      const outreachType = campaignOutreachType.value;
-      const customHint = campaignHint.value.trim();
-
-      // Determine which recipients to process
-      const targetRecipients = selectedIds.length > 0
-        ? state.recipients.filter(r => selectedIds.includes(r._id))
-        : state.recipients;
-
-      if (selectedIds.length === 1) {
-        // Single recipient — use fast single pipeline
-        triggerEmailGenerationPipeline(selectedIds[0], outreachType, customHint);
+    // Table click delegation
+    tableRecentEmails.addEventListener('click', async (e) => {
+      const prevBtn = e.target.closest('.btn-preview-email');
+      if (prevBtn) {
+        e.preventDefault();
+        openEmailPreviewModal(prevBtn.dataset.id);
         return;
       }
 
-      // Bulk generation for selected or all
-      if (targetRecipients.length === 0) {
-        showToast('No recipients registered to generate drafts.', 'error');
-        return;
-      }
-
-      const total = targetRecipients.length;
-
-      // Show and reset progress bar
-      const progressWrap  = document.getElementById('bulk-progress-wrap');
-      const progressBar   = document.getElementById('bulk-progress-bar');
-      const progressLabel = document.getElementById('bulk-progress-label');
-      const progressCount = document.getElementById('bulk-progress-count');
-
-      progressWrap.style.display = 'block';
-      progressBar.style.width = '0%';
-      progressBar.style.background = 'linear-gradient(90deg, #00A86B, #22c55e)';
-      progressLabel.textContent = 'Generating drafts...';
-      progressCount.textContent = `0 / ${total}`;
-
-      btnCampaignGenerate.setAttribute('disabled', 'true');
-      logToConsole(`[Campaign] Started bulk generation for ${total} recipient(s)...`);
-
-      let successCount = 0;
-      let failCount = 0;
-
-      for (let i = 0; i < total; i++) {
-        const r = targetRecipients[i];
-        progressLabel.textContent = `Drafting email for ${r.companyName}...`;
-        progressCount.textContent = `${i} / ${total}`;
-        logToConsole(`[Campaign] [${i+1}/${total}] Processing: ${r.companyName}`);
-
-
-
-          try {
-            const res = await authFetch(`${API_BASE}/emails/generate`, {
+      const dupBtn = e.target.closest('.btn-duplicate-email');
+      if (dupBtn) {
+        e.preventDefault();
+        const id = dupBtn.dataset.id;
+        try {
+          const item = state.allEmails.find(em => em._id === id);
+          if (item) {
+            const genRes = await authFetch(`${API_BASE}/emails/generate`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ recipientId: r._id, outreachType, customHint })
+              body: JSON.stringify({
+                recipientId: item.recipientId?._id || item.recipientId,
+                outreachType: item.outreachType || 'partnership',
+                customHint: `Duplicate: ${item.subject}`
+              })
             });
-            const data = await res.json();
-            if (data.success) {
-              successCount++;
-              logToConsole(`[Campaign] ✓ Created draft for ${r.companyName}`);
-            } else {
-              failCount++;
-              logToConsole(`[Campaign] ✗ Failed for ${r.companyName}: ${data.error}`, 'warn');
+            const genData = await genRes.json();
+            if (genData.success) {
+              showToast('Draft duplicated successfully!', 'success');
+              fetchRecentEmails(); fetchStats();
             }
-          } catch (err) {
-            failCount++;
-            logToConsole(`[Campaign] ✗ Network error for ${r.companyName}`, 'error');
           }
-
-          // Advance progress bar
-          const pct = Math.round(((i + 1) / total) * 100);
-          progressBar.style.width = `${pct}%`;
-          progressCount.textContent = `${i + 1} / ${total}`;
-          fetchStats();
-
-          // Small pause between requests to respect Groq rate limits (safe for 100+ emails)
-          if (i < total - 1) await new Promise(r => setTimeout(r, 1500));
-        }
-
-        // Final state
-        btnCampaignGenerate.removeAttribute('disabled');
-        const allOk = failCount === 0;
-        progressBar.style.width = '100%';
-        progressBar.style.background = allOk
-          ? 'linear-gradient(90deg, #10b981, #059669)'
-          : 'linear-gradient(90deg, #f59e0b, #d97706)';
-        progressLabel.textContent = allOk
-          ? `✓ All ${successCount} drafts generated!`
-          : `Done — ${successCount} generated, ${failCount} failed`;
-        progressCount.textContent = `${total} / ${total}`;
-
-        logToConsole(`[Campaign] Bulk generation finished. Successes: ${successCount}, Failures: ${failCount}`);
-        showToast(`Bulk drafts completed! (${successCount} generated, ${failCount} failed)`, allOk ? 'success' : 'error');
-        fetchRecentEmails();
-        fetchStats();
-
-        // Auto-hide progress bar after 4s
-        setTimeout(() => {
-          progressWrap.style.display = 'none';
-        }, 4000);
-    });
-
-
-    // 4. Campaign Bulk Send Dispatch Button
-    btnCampaignSend.addEventListener('click', async () => {
-      const selectedIds = getSelectedRecipientIds(); // [] = all, or array of selected recipient IDs
-      let draftEmails = state.allEmails.filter(e => e.status === 'draft');
-
-      if (selectedIds.length > 0) {
-        draftEmails = draftEmails.filter(e => {
-          const rId = typeof e.recipientId === 'object' ? e.recipientId?._id : e.recipientId;
-          return selectedIds.includes(rId);
-        });
-      }
-
-      if (draftEmails.length === 0) {
-        if (selectedIds.length > 0) {
-          showToast('No pending drafts ready to send for the selected company/companies.', 'error');
-        } else {
-          showToast('No pending drafts ready to send.', 'error');
-        }
+        } catch { showToast('Duplicate failed', 'error'); }
         return;
       }
 
-      const targetText = selectedIds.length > 0
-        ? `Are you sure you want to send ${draftEmails.length} draft email(s) for the selected ${selectedIds.length} company/companies via SMTP?`
-        : `Are you sure you want to send all ${draftEmails.length} draft emails out via SMTP?`;
-
-      showCustomConfirm(
-        "Confirm Bulk Send Dispatch", 
-        targetText, 
-        selectedIds.length > 0 ? "Send Selected" : "Send All", 
-        async () => {
-          btnCampaignSend.setAttribute('disabled', 'true');
-
-          // Show send progress bar
-          const sendWrap  = document.getElementById('send-progress-wrap');
-          const sendBar   = document.getElementById('send-progress-bar');
-          const sendLabel = document.getElementById('send-progress-label');
-          const sendCount = document.getElementById('send-progress-count');
-          const total = draftEmails.length;
-
-          sendWrap.style.display = 'block';
-          sendBar.style.width = '0%';
-          sendBar.style.background = 'linear-gradient(90deg, #00A86B, #22c55e)';
-          sendLabel.textContent = 'Dispatching emails...';
-          sendCount.textContent = `0 / ${total}`;
-
-          logToConsole(`[SMTP] Bulk dispatch starting for ${draftEmails.length} email(s)...`);
-          showToast('SMTP bulk dispatch started...', 'info');
-
-          let successCount = 0;
-          let failCount = 0;
-
-          for (let i = 0; i < draftEmails.length; i++) {
-            const e = draftEmails[i];
-            const emailAddress = e.recipientId?.email || 'N/A';
-            const companyName  = e.recipientId?.companyName || '';
-            sendLabel.textContent = `Sending to ${companyName} (${emailAddress})...`;
-            logToConsole(`[SMTP] [${i+1}/${total}] Sending to: ${companyName} <${emailAddress}>`);
-
-            try {
-              const res = await authFetch(`${API_BASE}/emails/${e._id}/send`, { method: 'POST' });
-              const data = await res.json();
-              if (data.success) {
-                successCount++;
-                logToConsole(`[SMTP] ✓ Delivered to: ${companyName} <${emailAddress}>`);
-              } else {
-                failCount++;
-                logToConsole(`[SMTP] ✗ Delivery failed for ${companyName}: ${data.error}`, 'error');
-              }
-            } catch (err) {
-              failCount++;
-              logToConsole(`[SMTP] ✗ Network error for ${companyName}`, 'error');
-            }
-
-            const pct = Math.round(((i + 1) / total) * 100);
-            sendBar.style.width = `${pct}%`;
-            sendCount.textContent = `${i + 1} / ${total}`;
-            fetchStats();
-            fetchRecentEmails();
-
-            if (i < draftEmails.length - 1) {
-              await new Promise(r => setTimeout(r, 2000));
-            }
+      const sendBtn = e.target.closest('.btn-send-now');
+      if (sendBtn) {
+        e.preventDefault();
+        const id = sendBtn.dataset.id;
+        sendBtn.disabled = true;
+        showToast('Sending email...', 'info');
+        try {
+          const res = await authFetch(`${API_BASE}/emails/${id}/send`, { method: 'POST' });
+          const data = await res.json();
+          if (data.success) {
+            showToast('Email delivered successfully!', 'success');
+            fetchRecentEmails(); fetchStats();
+          } else {
+            showToast(`Delivery failed: ${data.error}`, 'error');
           }
+        } catch { showToast('Network error during delivery', 'error'); }
+        return;
+      }
 
-          const allOk = failCount === 0;
-          sendBar.style.width = '100%';
-          sendBar.style.background = allOk
-            ? 'linear-gradient(90deg, #00A86B, #22c55e)'
-            : 'linear-gradient(90deg, #f59e0b, #d97706)';
-          sendLabel.textContent = allOk
-            ? `✓ All ${successCount} emails dispatched!`
-            : `Done — ${successCount} sent, ${failCount} failed`;
-
-          btnCampaignSend.removeAttribute('disabled');
-          logToConsole(`[SMTP] Bulk send completed. Successes: ${successCount}, Failures: ${failCount}`);
-          showToast(`Campaign dispatch finished: ${successCount} sent, ${failCount} failed`, 'success');
-          fetchRecentEmails();
-          fetchStats();
-
-          setTimeout(() => { sendWrap.style.display = 'none'; }, 5000);
-        }
-      );
+      const delBtn = e.target.closest('.btn-delete-email');
+      if (delBtn) {
+        e.preventDefault();
+        showCustomConfirm("Delete Draft", "Delete this email draft permanently?", "Delete", async () => {
+          try {
+            const res = await authFetch(`${API_BASE}/emails/${delBtn.dataset.id}`, { method: 'DELETE' });
+            const data = await res.json();
+            if (data.success) { showToast('Draft deleted', 'success'); fetchRecentEmails(); fetchStats(); }
+          } catch { showToast('Delete failed', 'error'); }
+        });
+        return;
+      }
     });
-
   }
 
-  async function triggerEmailGenerationPipeline(recipientId, outreachType = 'partnership', customHint = '') {
-    showToast('Generating personalized email in background... (Takes ~45s)', 'info');
-    logToConsole(`[AI] Starting email generation pipeline for recipient: ${recipientId}`);
+  // ─── EMAIL PREVIEW MODAL ─────────────────────────────────────────────────────
+  async function openEmailPreviewModal(id) {
+    state.previewEmailId = id;
+    try {
+      const res = await authFetch(`${API_BASE}/emails/${id}`);
+      const data = await res.json();
+      if (data.success) {
+        const e = data.data;
+        const modalSubject = document.getElementById('preview-modal-subject');
+        const modalTo = document.getElementById('preview-modal-to');
+        const iframe = document.getElementById('preview-iframe');
 
-    // Call API in the background
+        if (modalSubject) modalSubject.textContent = e.subject || '(No Subject)';
+        if (modalTo) modalTo.textContent = `To: ${e.recipientId?.contactName || 'Prospect'} <${e.recipientId?.email || ''}>`;
+        if (iframe) {
+          const doc = iframe.contentDocument || iframe.contentWindow.document;
+          doc.open();
+          doc.write(formatFullEmailHtml(e.subject, e.bodyHtml || e.bodyText));
+          doc.close();
+        }
+        modalEmailPreview.classList.add('active');
+      }
+    } catch { showToast('Failed loading email preview', 'error'); }
+  }
+
+  function formatFullEmailHtml(subject, content) {
+    let updated = content || '';
+    if (!updated.includes('OnIT India') && !updated.includes('<!DOCTYPE html>')) {
+      updated = `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>${subject || 'Email Preview'}</title></head>
+<body style="margin:0; padding:0; background-color:#f4f4f7; font-family: Arial, Helvetica, sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f7; padding: 24px 0;">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px; width:100%; background:#ffffff; border-radius:8px; overflow:hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+        <tr>
+          <td style="background: #00A86B; background: linear-gradient(135deg, #00A86B 0%, #008a58 100%); padding: 24px 32px;">
+            <p style="margin:0; font-size:20px; font-weight:bold; color:#ffffff; letter-spacing:0.5px;"><img src="onitindia-logo.png" alt="OnIT India" style="height:28px; vertical-align:middle; background:#ffffff; padding:3px 8px; border-radius:4px; margin-right:8px;">OnIT India</p>
+            <p style="margin:4px 0 0; font-size:12px; color:#ffffff; opacity:0.92;">Powering Businesses with Smart Technology</p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding: 32px; color:#333333; font-size:15px; line-height:1.7;">
+            ${updated}
+          </td>
+        </tr>
+        <tr><td style="padding: 0 32px;"><hr style="border:none; border-top:1px solid #e5e7eb; margin:0;"></td></tr>
+        <tr>
+          <td style="padding: 24px 32px; background:#f9fafb;">
+            <table cellpadding="0" cellspacing="0">
+              <tr>
+                <td style="border-left: 3px solid #00A86B; padding-left: 12px;">
+                  <p style="margin:0; font-size:14px; font-weight:bold; color:#0F172A;">OnIT India</p>
+                  <p style="margin:2px 0 8px; font-size:12px; color:#6b7280;">Powering Businesses with Smart Technology</p>
+                  <p style="margin:2px 0; font-size:12px; color:#374151;">🌐 <a href="https://www.onitindia.com" style="color:#00A86B; text-decoration:none;">www.onitindia.com</a></p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+    }
+    return updated;
+  }
+
+  // ─── TEMPLATE STUDIO JS ──────────────────────────────────────────────────────
+  function setupTemplateStudio() {
+    const btnEmailTab = document.getElementById('btn-template-type-email');
+    const btnPosterTab = document.getElementById('btn-template-type-poster');
+    const subpanelEmail = document.getElementById('subpanel-email-templates');
+    const subpanelPoster = document.getElementById('subpanel-poster-templates');
+
+    if (btnEmailTab && btnPosterTab) {
+      btnEmailTab.addEventListener('click', () => {
+        btnEmailTab.classList.add('active');
+        btnPosterTab.classList.remove('active');
+        if (subpanelEmail) subpanelEmail.style.display = 'block';
+        if (subpanelPoster) subpanelPoster.style.display = 'none';
+      });
+
+      btnPosterTab.addEventListener('click', () => {
+        btnPosterTab.classList.add('active');
+        btnEmailTab.classList.remove('active');
+        if (subpanelPoster) subpanelPoster.style.display = 'block';
+        if (subpanelEmail) subpanelEmail.style.display = 'none';
+      });
+    }
+
+    // Dynamic variable chips
+    document.querySelectorAll('.btn-variable-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        const varText = chip.dataset.var;
+        const bodyEl = document.getElementById('template-body');
+        if (bodyEl) {
+          const start = bodyEl.selectionStart || bodyEl.value.length;
+          const end = bodyEl.selectionEnd || bodyEl.value.length;
+          bodyEl.value = bodyEl.value.slice(0, start) + varText + bodyEl.value.slice(end);
+          bodyEl.focus();
+          updateLiveTemplatePreview();
+        }
+      });
+    });
+
+    // Live preview inputs sync
+    ['template-subject','template-greeting','template-body','template-cta','template-signature','template-footer'].forEach(id => {
+      document.getElementById(id)?.addEventListener('input', updateLiveTemplatePreview);
+    });
+
+    updateLiveTemplatePreview();
+
+    // Template Actions
+    document.getElementById('btn-save-email-template')?.addEventListener('click', () => {
+      showToast('Template saved to Template Library!', 'success');
+    });
+
+    document.getElementById('btn-save-email-draft')?.addEventListener('click', async () => {
+      const subject = document.getElementById('template-subject')?.value || 'New Email Draft';
+      const body = document.getElementById('template-body')?.value || '';
+      try {
+        if (!state.recipients.length) { showToast('No recipients in database to save draft for.', 'error'); return; }
+        const res = await authFetch(`${API_BASE}/emails/generate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            recipientId: state.recipients[0]._id,
+            outreachType: 'partnership',
+            customHint: `${subject}\n${body}`
+          })
+        });
+        const data = await res.json();
+        if (data.success) { showToast('Template saved as draft!', 'success'); fetchRecentEmails(); fetchStats(); }
+      } catch { showToast('Error saving draft', 'error'); }
+    });
+
+    document.getElementById('btn-test-email-send')?.addEventListener('click', async () => {
+      const testEmail = prompt('Enter recipient email address for test send:');
+      if (!testEmail) return;
+      showToast(`Sending test email to ${testEmail}…`, 'info');
+      try {
+        if (state.allEmails.length > 0) {
+          const res = await authFetch(`${API_BASE}/emails/${state.allEmails[0]._id}/send`, { method: 'POST' });
+          const data = await res.json();
+          if (data.success) showToast(`Test email delivered to ${testEmail}!`, 'success');
+          else showToast(`Test send failed: ${data.error}`, 'error');
+        } else {
+          showToast('Generate a draft first to test send.', 'error');
+        }
+      } catch { showToast('Network error during test send', 'error'); }
+    });
+  }
+
+  function updateLiveTemplatePreview() {
+    const iframe = document.getElementById('template-live-iframe');
+    if (!iframe) return;
+    const subject = document.getElementById('template-subject')?.value || 'Subject Line';
+    const greeting = document.getElementById('template-greeting')?.value || 'Hi {{firstName}},';
+    const body = document.getElementById('template-body')?.value || 'Write your email body content here...';
+    const cta = document.getElementById('template-cta')?.value || '';
+    const sig = document.getElementById('template-signature')?.value || 'Best regards,\nOnIT India Team';
+    const footer = document.getElementById('template-footer')?.value || 'OnIT India — Smart Technology';
+
+    const fullContent = `
+      <p style="margin:0 0 14px 0;">${greeting}</p>
+      <div style="margin:0 0 16px 0; line-height:1.7;">${body.replace(/\n/g, '<br>')}</div>
+      ${cta ? `<p style="margin:20px 0;"><a href="#" style="background:#00A86B; color:#fff; padding:10px 20px; text-decoration:none; border-radius:6px; font-weight:bold; display:inline-block;">${cta}</a></p>` : ''}
+      <p style="margin:20px 0 0 0; color:#6b7280; font-size:13px;">${sig.replace(/\n/g, '<br>')}</p>
+    `;
+
+    const html = formatFullEmailHtml(subject, fullContent);
+    const doc = iframe.contentDocument || iframe.contentWindow.document;
+    doc.open();
+    doc.write(html);
+    doc.close();
+  }
+
+  // ─── POSTER STUDIO CANVAS ────────────────────────────────────────────────────
+  function setupPosterStudio() {
+    const canvas = document.getElementById('poster-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+
+    let posterElements = [
+      { id: 'headline', x: 40, y: 120, text: 'Scale Your Outreach with AI', fontSize: 32, color: '#0f172a' },
+      { id: 'subtitle', x: 40, y: 220, text: 'OnIT India Smart Technology Solutions', fontSize: 18, color: '#475569' },
+      { id: 'cta', x: 40, y: 340, text: 'Book Free Consultation →', fontSize: 16, color: '#ffffff', isButton: true }
+    ];
+
+    let dragTarget = null;
+    let dragOffsetX = 0;
+    let dragOffsetY = 0;
+
+    function renderPoster() {
+      const W = canvas.width;
+      const H = canvas.height;
+      const bgColor = document.getElementById('poster-bg-color')?.value || '#00A86B';
+      const headline = document.getElementById('poster-headline-input')?.value || 'Scale Your Outreach with AI';
+      const subtitle = document.getElementById('poster-subtitle-input')?.value || 'OnIT India';
+      const cta = document.getElementById('poster-cta-input')?.value || 'Book Free Consultation →';
+
+      posterElements.find(e => e.id === 'headline').text = headline;
+      posterElements.find(e => e.id === 'subtitle').text = subtitle;
+      posterElements.find(e => e.id === 'cta').text = cta;
+
+      // Background
+      ctx.fillStyle = '#f8fafc';
+      ctx.fillRect(0, 0, W, H);
+
+      // Header Banner
+      ctx.fillStyle = bgColor;
+      ctx.fillRect(0, 0, W, 80);
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 20px Inter, sans-serif';
+      ctx.fillText('OnIT India', 40, 48);
+
+      // Draw Elements
+      posterElements.forEach(el => {
+        ctx.save();
+        if (el.isButton) {
+          ctx.fillStyle = bgColor;
+          ctx.beginPath();
+          ctx.roundRect(el.x, el.y, 240, 44, 8);
+          ctx.fill();
+          ctx.fillStyle = '#ffffff';
+          ctx.font = 'bold 15px Inter, sans-serif';
+          ctx.fillText(el.text, el.x + 20, el.y + 28);
+        } else {
+          ctx.fillStyle = el.color;
+          ctx.font = `bold ${el.fontSize}px Outfit, sans-serif`;
+          ctx.fillText(el.text, el.x, el.y);
+        }
+        ctx.restore();
+      });
+    }
+
+    ['poster-headline-input','poster-subtitle-input','poster-cta-input','poster-bg-color'].forEach(id => {
+      document.getElementById(id)?.addEventListener('input', renderPoster);
+    });
+
+    canvas.addEventListener('mousedown', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      const mx = (e.clientX - rect.left) * scaleX;
+      const my = (e.clientY - rect.top) * scaleY;
+
+      for (let i = posterElements.length - 1; i >= 0; i--) {
+        const el = posterElements[i];
+        if (mx >= el.x - 10 && mx <= el.x + 300 && my >= el.y - 30 && my <= el.y + 40) {
+          dragTarget = el;
+          dragOffsetX = mx - el.x;
+          dragOffsetY = my - el.y;
+          break;
+        }
+      }
+    });
+
+    canvas.addEventListener('mousemove', (e) => {
+      if (!dragTarget) return;
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      dragTarget.x = Math.max(10, (e.clientX - rect.left) * scaleX - dragOffsetX);
+      dragTarget.y = Math.max(20, (e.clientY - rect.top) * scaleY - dragOffsetY);
+      renderPoster();
+    });
+
+    canvas.addEventListener('mouseup', () => { dragTarget = null; });
+    canvas.addEventListener('mouseleave', () => { dragTarget = null; });
+
+    renderPoster();
+
+    // Exports
+    document.getElementById('btn-export-poster-png')?.addEventListener('click', () => {
+      const a = document.createElement('a');
+      a.href = canvas.toDataURL('image/png');
+      a.download = `onitindia-poster-${Date.now()}.png`;
+      a.click();
+      showToast('Exported poster PNG!', 'success');
+    });
+
+    document.getElementById('btn-export-poster-jpg')?.addEventListener('click', () => {
+      const a = document.createElement('a');
+      a.href = canvas.toDataURL('image/jpeg', 0.9);
+      a.download = `onitindia-poster-${Date.now()}.jpg`;
+      a.click();
+      showToast('Exported poster JPG!', 'success');
+    });
+
+    document.getElementById('btn-export-poster-pdf')?.addEventListener('click', () => {
+      const imgData = canvas.toDataURL('image/png');
+      const w = window.open('', '_blank');
+      w.document.write(`<!DOCTYPE html><html><head><title>Poster PDF</title></head><body style="margin:0;display:flex;justify-content:center;align-items:center;min-height:100vh;"><img src="${imgData}" style="max-width:90vw;"></body></html>`);
+      w.document.close();
+      setTimeout(() => w.print(), 500);
+    });
+  }
+
+  // ─── CSV UPLOADER ────────────────────────────────────────────────────────────
+  function setupCsvUploader() {
+    if (!csvDropZone || !csvFileInput) return;
+    csvDropZone.addEventListener('click', () => csvFileInput.click());
+    csvFileInput.addEventListener('change', handleCsvFile);
+  }
+
+  function handleCsvFile(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    showToast(`Loaded CSV: ${file.name}`, 'info');
+  }
+
+  // ─── SINGLE EMAIL GENERATION TRIGGER ──────────────────────────────────────────
+  async function triggerSingleEmailGeneration(recipientId) {
+    if (modalLoadingChecklist) modalLoadingChecklist.classList.add('active');
     try {
       const res = await authFetch(`${API_BASE}/emails/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ recipientId, outreachType, customHint })
+        body: JSON.stringify({ recipientId, outreachType: 'partnership' })
       });
-      
       const data = await res.json();
-
+      if (modalLoadingChecklist) modalLoadingChecklist.classList.remove('active');
       if (data.success) {
-        openComposerDrawer(data.data._id);
-        fetchRecentEmails();
-        fetchStats();
-        showToast('Email draft generated successfully!', 'success');
-        logToConsole(`[AI] ✓ Draft generated successfully for: ${data.data.recipientId?.companyName || 'Lead'}`);
+        showToast('AI Email generated successfully!', 'success');
+        fetchRecentEmails(); fetchStats();
       } else {
-        showToast(`AI generation failed: ${data.error}`, 'error');
-        logToConsole(`[AI] ✗ Generation failed: ${data.error}`, 'error');
+        showToast(`Generation failed: ${data.error}`, 'error');
       }
-
-    } catch (err) {
-      console.error('[AI] Fetch error:', err);
-      showToast('Network error during AI generation', 'error');
+    } catch {
+      if (modalLoadingChecklist) modalLoadingChecklist.classList.remove('active');
+      showToast('Network error during generation', 'error');
     }
   }
 
-  function setStepState(element, state) {
-    element.className = `checklist-item ${state}`;
+  // ─── PROFILE FETCH & SUBMIT ──────────────────────────────────────────────────
+  async function fetchProfile() {
+    try {
+      const res = await authFetch(`${API_BASE}/auth/check`);
+      const data = await res.json();
+      if (data.authenticated) {
+        const user = data.user;
+        const sidebarUsername = document.getElementById('sidebar-username');
+        if (sidebarUsername) sidebarUsername.textContent = user.username || 'onitindia';
+      }
+    } catch {}
   }
 
-  // ─── COMPOSER DRAWER EDITOR ──────────────────────────────────────────────────
-  async function openComposerDrawer(emailId) {
-    state.currentEditingEmailId = emailId;
-    
-    // Load email data
-    try {
-      const res = await authFetch(`${API_BASE}/emails/${emailId}`);
-      const data = await res.json();
-      if (data.success) {
-        const email = data.data;
-        
-        drawerRecipientName.textContent = email.recipientId?.companyName || 'Prospect';
-        composerTo.value = `${email.recipientId?.contactName || 'Recipient'} <${email.recipientId?.email || ''}>`;
-        composerSubject.value = email.subject || '';
-        composerBody.value = email.bodyText || email.bodyHtml || '';
-        
-        // Insights & Prompt details
-        composerNotes.textContent = email.aiPersonalizationNotes || 'No notes generated.';
-        composerPrompt.textContent = email.promptUsed || 'No prompt logs found.';
-        
-        // Hide accordions content initially
-        accordionContentNotes.parentElement.classList.remove('active');
-        accordionContentNotes.style.maxHeight = '0';
-        accordionContentPrompt.parentElement.classList.remove('active');
-        accordionContentPrompt.style.maxHeight = '0';
+  function populateCampaignDropdown(recipients) {
+    if (!msOptions) return;
+    msOptions.querySelectorAll('.multiselect-option:not(.multiselect-all-option)').forEach(el => el.remove());
+    recipients.forEach(r => {
+      const label = document.createElement('label');
+      label.className = 'multiselect-option';
+      label.innerHTML = `
+        <input type="checkbox" class="multiselect-item-chk" value="${r._id}" checked>
+        <span class="multiselect-check"></span>
+        <span class="multiselect-option-text">${escapeHtml(r.companyName)} (${escapeHtml(r.email)})</span>
+      `;
+      msOptions.appendChild(label);
+    });
+  }
 
-        // Check if sent already (disable edit / send buttons)
-        if (email.status === 'sent') {
-          btnDrawerSave.setAttribute('disabled', 'true');
-          btnDrawerSend.setAttribute('disabled', 'true');
-          composerSubject.setAttribute('readonly', 'true');
-          composerBody.setAttribute('readonly', 'true');
-          btnDrawerSend.innerHTML = 'Delivered via SMTP';
-        } else {
-          btnDrawerSave.removeAttribute('disabled');
-          btnDrawerSend.removeAttribute('disabled');
-          composerSubject.removeAttribute('readonly');
-          composerBody.removeAttribute('readonly');
-          btnDrawerSend.innerHTML = 'Send Email Draft';
-        }
+  function bindFormSubmissions() {
+    if (formSingleLead) {
+      formSingleLead.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const payload = {
+          companyName: document.getElementById('lead-company').value.trim(),
+          contactName: document.getElementById('lead-contact').value.trim() || undefined,
+          contactTitle: document.getElementById('lead-title').value.trim() || undefined,
+          email: document.getElementById('lead-email').value.trim(),
+          website: document.getElementById('lead-website').value.trim() || undefined,
+          outreachType: document.getElementById('lead-outreach').value,
+          description: document.getElementById('lead-description').value.trim() || undefined
+        };
+        try {
+          const res = await authFetch(`${API_BASE}/recipients`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          const data = await res.json();
+          if (data.success) {
+            showToast('Recipient added successfully!', 'success');
+            formSingleLead.reset();
+            fetchRecipients();
+          } else { showToast(`Error: ${data.error}`, 'error'); }
+        } catch { showToast('Network error while adding lead', 'error'); }
+      });
+    }
 
-        // Open drawer
-        drawerComposer.classList.add('active');
-      }
-    } catch (err) {
-      showToast('Failed to load email draft details', 'error');
+    if (formBrandProfile) {
+      formBrandProfile.addEventListener('submit', (e) => {
+        e.preventDefault();
+        showToast('Brand profile changes saved!', 'success');
+      });
     }
   }
 
   function closeComposerDrawer() {
-    drawerComposer.classList.remove('active');
+    if (drawerComposer) drawerComposer.classList.remove('active');
     state.currentEditingEmailId = null;
   }
 
-  // Save changes in drawer
-  btnDrawerSave.addEventListener('click', async () => {
-    if (!state.currentEditingEmailId) return;
-    
-    const payload = {
-      subject: composerSubject.value.trim(),
-      bodyText: composerBody.value,
-      bodyHtml: composerBody.value // Update HTML similarly for edits
-    };
-
-    try {
-      const res = await authFetch(`${API_BASE}/emails/${state.currentEditingEmailId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      const data = await res.json();
-      if (data.success) {
-        showToast('Draft changes saved!', 'success');
-        logToConsole(`[Emails] Saved edits to draft Email ID: ${state.currentEditingEmailId}`);
-        closeComposerDrawer();
-        fetchRecentEmails();
-      } else {
-        showToast(`Failed: ${data.error}`, 'error');
-      }
-    } catch (err) {
-      showToast('Error saving changes', 'error');
-    }
-  });
-
-  // Send draft from drawer
-  btnDrawerSend.addEventListener('click', async () => {
-    if (!state.currentEditingEmailId) return;
-
-    // Save changes first
-    const payload = {
-      subject: composerSubject.value.trim(),
-      bodyText: composerBody.value,
-      bodyHtml: composerBody.value
-    };
-
-    btnDrawerSend.setAttribute('disabled', 'true');
-    showToast('Delivering email...', 'info');
-
-    try {
-      // Save changes
-      await authFetch(`${API_BASE}/emails/${state.currentEditingEmailId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      // Send
-      const sendRes = await authFetch(`${API_BASE}/emails/${state.currentEditingEmailId}/send`, {
-        method: 'POST'
-      });
-      const sendData = await sendRes.json();
-
-      if (sendData.success) {
-        showToast('Email delivered successfully!', 'success');
-        logToConsole(`[SMTP] ✓ Delivered to: ${sendData.data?.recipientId?.email}`);
-        closeComposerDrawer();
-        fetchRecentEmails();
-        fetchStats();
-      } else {
-        showToast(`Send failed: ${sendData.error}`, 'error');
-        logToConsole(`[SMTP] ✗ Delivery failed: ${sendData.error}`, 'error');
-        btnDrawerSend.removeAttribute('disabled');
-      }
-    } catch (err) {
-      showToast('Error during email delivery', 'error');
-      btnDrawerSend.removeAttribute('disabled');
-    }
-  });
-
-  // Search input filter
-  let searchTimeout;
-  recipientSearch.addEventListener('input', () => {
-    clearTimeout(searchTimeout);
-    searchTimeout = setTimeout(() => {
-      fetchRecipients();
-    }, 300);
-  });
-
-  // ─── CSV FILE PARSER & BULK UPLOADER ─────────────────────────────────────────
-  function setupCsvUploader() {
-    
-    // Click drop zone to choose file
-    csvDropZone.addEventListener('click', () => {
-      csvFileInput.click();
-    });
-
-    // Handle file selection
-    csvFileInput.addEventListener('change', (e) => {
-      if (csvFileInput.files.length > 0) {
-        handleCsvFile(csvFileInput.files[0]);
-      }
-    });
-
-    // Drag-over styling
-    csvDropZone.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      csvDropZone.classList.add('dragover');
-    });
-
-    csvDropZone.addEventListener('dragleave', () => {
-      csvDropZone.classList.remove('dragover');
-    });
-
-    // Handle Drop
-    csvDropZone.addEventListener('drop', (e) => {
-      e.preventDefault();
-      csvDropZone.classList.remove('dragover');
-      if (e.dataTransfer.files.length > 0) {
-        handleCsvFile(e.dataTransfer.files[0]);
-      }
-    });
-
-    // Cancel CSV Modal
-    btnCsvCancel.addEventListener('click', () => {
-      modalCsvMapper.classList.remove('active');
-      csvFileInput.value = '';
-      state.parsedCsvData = null;
-    });
-
-    // Confirm Upload CSV
-    btnCsvConfirm.addEventListener('click', uploadMappedCsvData);
-  }
-
-  function handleCsvFile(file) {
-    if (!file.name.endsWith('.csv')) {
-      showToast('Please upload a valid .csv file', 'error');
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const text = e.target.result;
-      parseCsvData(text);
-    };
-    reader.readAsText(file);
-  }
-
-  function parseCsvData(text) {
-    const lines = text.split(/\r?\n/).map(line => line.trim()).filter(line => line.length > 0);
-    if (lines.length <= 1) {
-      showToast('CSV file is empty or missing data rows', 'error');
-      return;
-    }
-
-    // Parse CSV rows simple way
-    const headerRow = parseCsvLine(lines[0]);
-    const dataRows = [];
-    
-    for (let i = 1; i < lines.length; i++) {
-      const rowCells = parseCsvLine(lines[i]);
-      if (rowCells.length > 0) {
-        dataRows.push(rowCells);
-      }
-    }
-
-    state.parsedCsvData = {
-      headers: headerRow,
-      rows: dataRows
-    };
-
-    // Open Column mapping modal
-    openColumnMapperModal(headerRow, dataRows);
-  }
-
-  function parseCsvLine(line) {
-    // Simple quotes-aware CSV line split
-    const result = [];
-    let cell = '';
-    let inQuotes = false;
-    for (let i = 0; i < line.length; i++) {
-      const char = line[i];
-      if (char === '"') {
-        inQuotes = !inQuotes;
-      } else if (char === ',' && !inQuotes) {
-        result.push(cell.trim());
-        cell = '';
-      } else {
-        cell += char;
-      }
-    }
-    result.push(cell.trim());
-    return result;
-  }
-
-  function openColumnMapperModal(headers, rows) {
-    // Populate column selectors
-    const selectors = [mapCompany, mapEmail, mapContact, mapTitle, mapWebsite, mapOutreach, mapDesc];
-    selectors.forEach(sel => {
-      sel.innerHTML = `<option value="">-- Ignore Column --</option>`;
-      headers.forEach((h, idx) => {
-        const opt = document.createElement('option');
-        opt.value = idx;
-        opt.textContent = `${h} (Col ${idx+1})`;
-        sel.appendChild(opt);
-      });
-    });
-
-    // Smart auto-mapping
-    headers.forEach((h, idx) => {
-      const lower = h.toLowerCase().replace(/[^a-z0-9]/g, '');
-      if (['company', 'companyname', 'name', 'firm', 'organization'].includes(lower)) {
-        mapCompany.value = idx;
-      } else if (['email', 'emailaddress', 'contactemail'].includes(lower)) {
-        mapEmail.value = idx;
-      } else if (['contact', 'contactname', 'fullname', 'person'].includes(lower)) {
-        mapContact.value = idx;
-      } else if (['title', 'contacttitle', 'role', 'designation'].includes(lower)) {
-        mapTitle.value = idx;
-      } else if (['website', 'site', 'url', 'link'].includes(lower)) {
-        mapWebsite.value = idx;
-      } else if (['outreach', 'outreachtype', 'intent', 'type'].includes(lower)) {
-        mapOutreach.value = idx;
-      } else if (['description', 'details', 'about', 'summary'].includes(lower)) {
-        mapDesc.value = idx;
-      }
-    });
-
-    // Populate preview table
-    const thead = tableCsvPreview.querySelector('thead');
-    const tbody = tableCsvPreview.querySelector('tbody');
-    thead.innerHTML = `<tr>${headers.map(h => `<th>${escapeHtml(h)}</th>`).join('')}</tr>`;
-    
-    tbody.innerHTML = '';
-    const previewRows = rows.slice(0, 4); // Preview first 4 rows
-    previewRows.forEach(row => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = headers.map((_, idx) => `<td>${escapeHtml(row[idx] || '')}</td>`).join('');
-      tbody.appendChild(tr);
-    });
-
-    modalCsvMapper.classList.add('active');
-  }
-
-  async function uploadMappedCsvData() {
-    const colCompanyIdx = mapCompany.value;
-    const colEmailIdx = mapEmail.value;
-    const colContactIdx = mapContact.value;
-    const colTitleIdx = mapTitle.value;
-    const colWebsiteIdx = mapWebsite.value;
-    const colOutreachIdx = mapOutreach.value;
-    const colDescIdx = mapDesc.value;
-
-    if (colCompanyIdx === "" || colEmailIdx === "") {
-      showToast("Company Name and Email mapping are required fields!", "error");
-      return;
-    }
-
-    modalCsvMapper.classList.remove('active');
-    showToast("Bulk upload starting...", "info");
-    logToConsole(`[CSV] Started bulk recipient uploading from file...`);
-
-    let successCount = 0;
-    let failCount = 0;
-    const total = state.parsedCsvData.rows.length;
-
-    for (let i = 0; i < total; i++) {
-      const row = state.parsedCsvData.rows[i];
-      const payload = {
-        companyName: row[colCompanyIdx],
-        email: row[colEmailIdx],
-        contactName: colContactIdx !== "" ? row[colContactIdx] : undefined,
-        contactTitle: colTitleIdx !== "" ? row[colTitleIdx] : undefined,
-        website: colWebsiteIdx !== "" ? row[colWebsiteIdx] : undefined,
-        outreachType: colOutreachIdx !== "" ? row[colOutreachIdx] : undefined,
-        description: colDescIdx !== "" ? row[colDescIdx] : undefined
-      };
-
-      // Clean empty fields
-      Object.keys(payload).forEach(key => {
-        if (payload[key] === undefined || payload[key] === null || payload[key].toString().trim() === "") {
-          delete payload[key];
-        }
-      });
-
-      // Basic fallback
-      if (!payload.outreachType) {
-        payload.outreachType = 'partnership';
-      }
-
-      try {
-        const res = await authFetch(`${API_BASE}/recipients`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        const data = await res.json();
-        if (data.success) {
-          successCount++;
-        } else {
-          // Check if it's a duplicate error
-          if (data.error && (data.error.toLowerCase().includes('duplicate') || data.error.toLowerCase().includes('exists'))) {
-            logToConsole(`[CSV] Skipped duplicate: ${payload.email}`, 'warn');
-          }
-          failCount++;
-        }
-      } catch (err) {
-        failCount++;
-      }
-    }
-
-    logToConsole(`[CSV] Bulk upload complete. Successes: ${successCount}, Failed: ${failCount}`);
-    showToast(`Bulk upload finished! (${successCount} added, ${failCount} failed)`, "success");
-    csvFileInput.value = '';
-    state.parsedCsvData = null;
-    fetchRecipients();
-  }
-
-  // ─── ESCAPE HTML UTILITY ─────────────────────────────────────────────────────
-  function escapeHtml(unsafe) {
-    if (!unsafe) return '';
-    return unsafe
-      .toString()
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;");
-  }
-
-  // ─── START THE APP ───────────────────────────────────────────────────────────
   init();
-
 });

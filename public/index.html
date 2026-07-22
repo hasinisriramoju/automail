@@ -20,16 +20,21 @@
     <aside class="sidebar">
       <div class="sidebar-header">
         <div class="brand-logo">
-          <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          <span class="brand-name">OnIT Outreach</span>
+          <img src="onitindia-logo.png" alt="OnIT India" style="height:36px; max-width:160px; object-fit:contain;">
         </div>
       </div>
       <nav class="sidebar-nav">
         <button class="nav-item active" id="tab-btn-dashboard">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
           Dashboard
+        </button>
+        <button class="nav-item" id="tab-btn-templates">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+          Templates
+        </button>
+        <button class="nav-item" id="tab-btn-bulk-outreach">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          Bulk Outreach
         </button>
         <button class="nav-item" id="tab-btn-recipients">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
@@ -43,7 +48,6 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
           Brand Profile
         </button>
-
       </nav>
       <div class="sidebar-footer">
         <div class="model-badge">
@@ -97,114 +101,21 @@
       <!-- TAB VIEW PANELS -->
       <div class="tab-panels-container">
         
-        <!-- 1. DASHBOARD VIEW -->
+        <!-- 1. DASHBOARD VIEW (Cleaned up, no Bulk card) -->
         <section class="tab-panel active" id="panel-dashboard">
           
-          <div class="dashboard-grid">
-            
-            <!-- LEFT PANEL: CAMPAIGN LAUNCHER -->
-            <div class="dashboard-card card-double">
-              <div class="card-header">
-                <h2>Bulk Outreach Campaigns</h2>
-                <p>Run automated scraping, generation, and dispatch for recipient lists.</p>
-              </div>
-              
-              <div class="campaign-launcher-box">
-                <div class="form-row">
-                  <div class="form-group flex-2">
-                    <label>Choose Recipient Group(s)</label>
-                    <!-- Custom Multi-Select Dropdown -->
-                    <div class="multiselect-wrap" id="recipient-multiselect-wrap">
-                      <div class="multiselect-trigger" id="recipient-multiselect-trigger" tabindex="0">
-                        <span class="multiselect-value" id="multiselect-label">All Available Recipients</span>
-                        <svg class="multiselect-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="6 9 12 15 18 9"/></svg>
-                      </div>
-                      <div class="multiselect-dropdown" id="recipient-multiselect-dropdown">
-                        <div class="multiselect-search-wrap">
-                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                          <input class="multiselect-search" id="multiselect-search" type="text" placeholder="Search recipients...">
-                        </div>
-                        <div class="multiselect-options" id="multiselect-options">
-                          <label class="multiselect-option multiselect-all-option">
-                            <input type="checkbox" id="multiselect-all" value="" checked>
-                            <span class="multiselect-check"></span>
-                            <span class="multiselect-option-text">All Available Recipients</span>
-                          </label>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div class="form-group">
-                    <label for="campaign-outreach-type">Outreach Intent</label>
-                    <select id="campaign-outreach-type">
-                      <option value="partnership">Partnership</option>
-                      <option value="sales">Sales</option>
-                      <option value="startup_collab">Startup Collab</option>
-                      <option value="investor">Investor</option>
-                      <option value="networking">Networking</option>
-                      <option value="hiring">Hiring</option>
-                      <option value="internship">Internship</option>
-                      <option value="custom">Custom</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div class="form-group">
-                  <label for="campaign-hint">Contextual Pitch Prompt Hint (Optional)</label>
-                  <textarea id="campaign-hint" rows="2" placeholder="e.g. Focus on our custom payment flow expertise and fintech vertical."></textarea>
-                </div>
-                 <div class="campaign-actions">
-                  <button class="btn btn-indigo" id="btn-campaign-generate">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
-                    Generate Drafts in Bulk
-                  </button>
-                  <button class="btn btn-emerald" id="btn-campaign-send" disabled>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-                    Start Bulk Send Dispatch
-                  </button>
-                  <button class="btn btn-outline" id="btn-retry-failed" style="display:none;">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>
-                    Retry Failed
-                  </button>
-                 </div>
-
-                <!-- Bulk Generation Progress Bar -->
-                <div id="bulk-progress-wrap" style="display:none; margin-top: 16px;">
-                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                    <span id="bulk-progress-label" style="font-size: 12px; font-weight: 600; color: var(--text-muted);">Generating drafts...</span>
-                    <span id="bulk-progress-count" style="font-size: 12px; color: var(--text-muted);">0 / 0</span>
-                  </div>
-                  <div style="background: var(--border-color); border-radius: 99px; height: 8px; overflow: hidden;">
-                    <div id="bulk-progress-bar" style="height: 100%; width: 0%; background: linear-gradient(90deg, #6366f1, #8b5cf6); border-radius: 99px; transition: width 0.4s ease;"></div>
-                  </div>
-                </div>
-
-                <!-- Bulk Send Progress Bar -->
-                <div id="send-progress-wrap" style="display:none; margin-top: 12px;">
-                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                    <span id="send-progress-label" style="font-size: 12px; font-weight: 600; color: var(--text-muted);">Dispatching emails...</span>
-                    <span id="send-progress-count" style="font-size: 12px; color: var(--text-muted);">0 / 0</span>
-                  </div>
-                  <div style="background: var(--border-color); border-radius: 99px; height: 8px; overflow: hidden;">
-                    <div id="send-progress-bar" style="height: 100%; width: 0%; background: linear-gradient(90deg, #10b981, #059669); border-radius: 99px; transition: width 0.4s ease;"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- RIGHT PANEL: DISPATCH MONITOR -->
+          <div class="dashboard-grid" style="grid-template-columns: 1fr;">
+            <!-- SYSTEM LOG MONITOR -->
             <div class="dashboard-card">
               <div class="card-header">
                 <h2>System Log Activity</h2>
-                <p>Real-time updates from background queues.</p>
+                <p>Real-time updates from background queues and campaign dispatchers.</p>
               </div>
               <div class="console-box" id="system-console">
                 <div class="console-line system">[System] Connection established to remote DB Atlas.</div>
                 <div class="console-line system">[System] Scheduler is online & checking for drops every minute.</div>
               </div>
             </div>
-
           </div>
 
           <!-- ANALYTICS ROW -->
@@ -244,12 +155,10 @@
                 <p>Audit trail of generated emails, drafts, and sends.</p>
               </div>
               <div style="display:flex; gap:8px; align-items:center; flex-wrap: wrap;">
-                <!-- Email Search -->
                 <div class="search-box" style="min-width:200px;">
                   <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
                   <input type="text" id="email-search" placeholder="Search subject or recipient...">
                 </div>
-                <!-- Filter Tabs -->
                 <div class="email-filter-tabs">
                   <button class="filter-tab active" data-filter="all" id="filter-all">All</button>
                   <button class="filter-tab" data-filter="draft" id="filter-draft">Drafts <span class="filter-count" id="count-draft">0</span></button>
@@ -273,7 +182,6 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <!-- Filled dynamically by JavaScript -->
                   <tr>
                     <td colspan="6" class="text-center text-muted">No emails loaded. Click Refresh to reload.</td>
                   </tr>
@@ -284,7 +192,313 @@
 
         </section>
 
-        <!-- 2. RECIPIENTS VIEW (Full width table) -->
+        <!-- 2. TEMPLATES VIEW (Email Builder + Poster Builder) -->
+        <section class="tab-panel" id="panel-templates">
+          <div class="dashboard-card max-width-card" style="max-width: 100%;">
+            <div class="card-header flex-header" style="border-bottom: 1px solid var(--border-color); padding-bottom: 16px; margin-bottom: 20px;">
+              <div>
+                <h2>Template Studio</h2>
+                <p>Create and customize Email and Poster Templates with dynamic variables and rich visual formatting.</p>
+              </div>
+              <div class="add-methods-tabs" style="margin: 0;">
+                <button class="method-tab active" id="btn-template-type-email">✉️ Email Templates</button>
+                <button class="method-tab" id="btn-template-type-poster">🎨 Poster Templates</button>
+              </div>
+            </div>
+
+            <!-- EMAIL TEMPLATES SUB-PANEL -->
+            <div id="subpanel-email-templates">
+              <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 24px;">
+                
+                <!-- EDITOR FORM -->
+                <div>
+                  <div class="form-row">
+                    <div class="form-group flex-2">
+                      <label for="template-category">Template Category</label>
+                      <select id="template-category" class="form-input">
+                        <option value="Cold Outreach">Cold Outreach</option>
+                        <option value="Partnership">Partnership</option>
+                        <option value="Marketing">Marketing</option>
+                        <option value="Sales">Sales</option>
+                        <option value="Product Launch">Product Launch</option>
+                        <option value="Newsletter">Newsletter</option>
+                        <option value="Follow-up">Follow-up</option>
+                        <option value="Meeting Request">Meeting Request</option>
+                        <option value="Hiring">Hiring</option>
+                        <option value="Investor Outreach">Investor Outreach</option>
+                        <option value="Customer Success">Customer Success</option>
+                        <option value="Event Invitation">Event Invitation</option>
+                        <option value="Custom">Custom</option>
+                      </select>
+                    </div>
+                    <div class="form-group">
+                      <label for="template-name">Template Title</label>
+                      <input type="text" id="template-name" placeholder="e.g. Cold Sales Intro" class="form-input">
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="template-subject">Subject Line</label>
+                    <input type="text" id="template-subject" placeholder="e.g. Partnership Opportunity with {{company}}" class="form-input">
+                  </div>
+
+                  <div class="form-group">
+                    <label for="template-preview-text">Preview Text</label>
+                    <input type="text" id="template-preview-text" placeholder="Short preheader text..." class="form-input">
+                  </div>
+
+                  <!-- Dynamic Variables Chips -->
+                  <div class="form-group">
+                    <label style="font-size:12px; font-weight:600; color:var(--text-muted); margin-bottom:6px; display:block;">Insert Dynamic Variables:</label>
+                    <div style="display:flex; flex-wrap:wrap; gap:6px;">
+                      <button type="button" class="btn-variable-chip" data-var="{{firstName}}">{{firstName}}</button>
+                      <button type="button" class="btn-variable-chip" data-var="{{lastName}}">{{lastName}}</button>
+                      <button type="button" class="btn-variable-chip" data-var="{{company}}">{{company}}</button>
+                      <button type="button" class="btn-variable-chip" data-var="{{designation}}">{{designation}}</button>
+                      <button type="button" class="btn-variable-chip" data-var="{{industry}}">{{industry}}</button>
+                      <button type="button" class="btn-variable-chip" data-var="{{website}}">{{website}}</button>
+                      <button type="button" class="btn-variable-chip" data-var="{{senderName}}">{{senderName}}</button>
+                      <button type="button" class="btn-variable-chip" data-var="{{senderCompany}}">{{senderCompany}}</button>
+                      <button type="button" class="btn-variable-chip" data-var="{{date}}">{{date}}</button>
+                      <button type="button" class="btn-variable-chip" data-var="{{custom}}">{{custom}}</button>
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="template-greeting">Greeting</label>
+                    <input type="text" id="template-greeting" value="Hi {{firstName}}," class="form-input">
+                  </div>
+
+                  <div class="form-group">
+                    <label for="template-body">Email Body HTML / Text</label>
+                    <textarea id="template-body" rows="8" class="form-input" style="font-family:monospace; font-size:13px;" placeholder="Write email body content..."></textarea>
+                  </div>
+
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label for="template-cta">Call-To-Action (CTA)</label>
+                      <input type="text" id="template-cta" placeholder="e.g. Book a 15-min intro call" class="form-input">
+                    </div>
+                    <div class="form-group">
+                      <label for="template-signature">Signature</label>
+                      <input type="text" id="template-signature" placeholder="Best regards, {{senderName}}" class="form-input">
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="template-footer">Footer Text</label>
+                    <input type="text" id="template-footer" value="OnIT India — Powering Businesses with Smart Technology" class="form-input">
+                  </div>
+
+                  <!-- Actions Bar -->
+                  <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:20px;">
+                    <button type="button" class="btn btn-emerald" id="btn-save-email-template">Save Template</button>
+                    <button type="button" class="btn btn-indigo" id="btn-save-email-draft">Save Draft</button>
+                    <button type="button" class="btn btn-outline" id="btn-duplicate-email-template">Duplicate</button>
+                    <button type="button" class="btn btn-outline" id="btn-test-email-send" style="color:var(--color-indigo);">Test Email</button>
+                    <button type="button" class="btn btn-rose" id="btn-delete-email-template" style="margin-left:auto; background:var(--color-rose); color:#fff;">Delete</button>
+                  </div>
+                </div>
+
+                <!-- LIVE PREVIEW PANE -->
+                <div>
+                  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                    <h3 style="font-size:14px; font-weight:600;">Live Email Preview</h3>
+                    <div class="email-filter-tabs" style="margin:0;">
+                      <button class="filter-tab active" id="btn-prev-mode-desktop">Desktop</button>
+                      <button class="filter-tab" id="btn-prev-mode-mobile">Mobile</button>
+                      <button class="filter-tab" id="btn-prev-mode-dark">Dark Mode</button>
+                    </div>
+                  </div>
+
+                  <div id="template-preview-wrap" style="border:1px solid var(--border-color); border-radius:8px; overflow:hidden; background:#f4f4f7; min-height:500px; padding:16px;">
+                    <iframe id="template-live-iframe" style="width:100%; height:520px; border:none; background:#fff; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.08);"></iframe>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- POSTER TEMPLATES SUB-PANEL -->
+            <div id="subpanel-poster-templates" style="display:none;">
+              <div style="display: grid; grid-template-columns: 280px 1fr; gap: 20px;">
+                
+                <!-- CANVAS TOOLBAR & CONTROLS -->
+                <div style="border-right:1px solid var(--border-color); padding-right:16px;">
+                  <h3 style="font-size:14px; font-weight:700; margin-bottom:12px;">Poster Toolbox</h3>
+                  
+                  <div class="form-group">
+                    <label>Poster Theme</label>
+                    <select id="poster-theme-select" class="form-input">
+                      <option value="modern-dark">Modern Dark</option>
+                      <option value="corporate-green">Corporate Green</option>
+                      <option value="vibrant-gradient">Vibrant Gradient</option>
+                      <option value="minimal-light">Minimal Light</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group">
+                    <label>Headline Text</label>
+                    <input type="text" id="poster-headline-input" value="Scale Your Outreach with AI" class="form-input">
+                  </div>
+
+                  <div class="form-group">
+                    <label>Subtitle Text</label>
+                    <input type="text" id="poster-subtitle-input" value="OnIT India Smart Technology Solutions" class="form-input">
+                  </div>
+
+                  <div class="form-group">
+                    <label>CTA Button Text</label>
+                    <input type="text" id="poster-cta-input" value="Book Free Consultation →" class="form-input">
+                  </div>
+
+                  <div class="form-group">
+                    <label>Background Color</label>
+                    <input type="color" id="poster-bg-color" value="#00A86B" style="width:100%; height:36px; cursor:pointer; border-radius:6px; border:1px solid var(--border-color);">
+                  </div>
+
+                  <div style="display:flex; flex-direction:column; gap:8px; margin-top:20px;">
+                    <button type="button" class="btn btn-emerald" id="btn-export-poster-png">Export PNG</button>
+                    <button type="button" class="btn btn-indigo" id="btn-export-poster-jpg">Export JPG</button>
+                    <button type="button" class="btn btn-outline" id="btn-export-poster-pdf">Print / Export PDF</button>
+                  </div>
+                </div>
+
+                <!-- CANVAS DISPLAY -->
+                <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; background:#1e293b; border-radius:12px; padding:24px; min-height:540px;">
+                  <canvas id="poster-canvas" width="600" height="750" style="max-width:100%; max-height:480px; border-radius:8px; box-shadow:0 8px 24px rgba(0,0,0,0.3); background:#fff;"></canvas>
+                  <p style="color:#94a3b8; font-size:12px; margin-top:12px;">Drag elements on canvas to reposition.</p>
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- 3. BULK OUTREACH VIEW (Dedicated Page) -->
+        <section class="tab-panel" id="panel-bulk-outreach">
+          <div class="dashboard-card max-width-card" style="max-width:100%;">
+            
+            <!-- CAMPAIGN OVERVIEW STATS -->
+            <div class="card-header margin-bottom">
+              <h2>Bulk Outreach Campaigns</h2>
+              <p>Schedule, generate, and dispatch automated bulk email campaigns to recipient groups.</p>
+            </div>
+
+            <div class="analytics-row margin-bottom">
+              <div class="analytics-card">
+                <div class="analytics-label">Total Campaigns</div>
+                <div class="analytics-value" id="bulk-stat-total">0</div>
+              </div>
+              <div class="analytics-card">
+                <div class="analytics-label">Draft Campaigns</div>
+                <div class="analytics-value text-indigo" id="bulk-stat-drafts">0</div>
+              </div>
+              <div class="analytics-card">
+                <div class="analytics-label">Completed</div>
+                <div class="analytics-value text-green" id="bulk-stat-completed">0</div>
+              </div>
+              <div class="analytics-card">
+                <div class="analytics-label">Failed</div>
+                <div class="analytics-value text-rose" id="bulk-stat-failed">0</div>
+              </div>
+            </div>
+
+            <!-- CAMPAIGN LAUNCHER FORM -->
+            <div class="dashboard-card card-double margin-bottom" style="background:var(--bg-input); border:1px solid var(--border-color);">
+              <div class="card-header">
+                <h2>New Bulk Outreach Campaign</h2>
+                <p>Select target recipient groups, intent prompt, and trigger bulk generation/send.</p>
+              </div>
+              
+              <div class="campaign-launcher-box">
+                <div class="form-row">
+                  <div class="form-group flex-2">
+                    <label>Choose Recipient Group(s)</label>
+                    <div class="multiselect-wrap" id="recipient-multiselect-wrap">
+                      <div class="multiselect-trigger" id="recipient-multiselect-trigger" tabindex="0">
+                        <span class="multiselect-value" id="multiselect-label">All Available Recipients</span>
+                        <svg class="multiselect-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="6 9 12 15 18 9"/></svg>
+                      </div>
+                      <div class="multiselect-dropdown" id="recipient-multiselect-dropdown">
+                        <div class="multiselect-search-wrap">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                          <input class="multiselect-search" id="multiselect-search" type="text" placeholder="Search recipients...">
+                        </div>
+                        <div class="multiselect-options" id="multiselect-options">
+                          <label class="multiselect-option multiselect-all-option">
+                            <input type="checkbox" id="multiselect-all" value="" checked>
+                            <span class="multiselect-check"></span>
+                            <span class="multiselect-option-text">All Available Recipients</span>
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="campaign-outreach-type">Outreach Intent</label>
+                    <select id="campaign-outreach-type" class="form-input">
+                      <option value="partnership">Partnership</option>
+                      <option value="sales">Sales</option>
+                      <option value="startup_collab">Startup Collab</option>
+                      <option value="investor">Investor</option>
+                      <option value="networking">Networking</option>
+                      <option value="hiring">Hiring</option>
+                      <option value="internship">Internship</option>
+                      <option value="custom">Custom</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label for="campaign-hint">Contextual Pitch Prompt Hint (Optional)</label>
+                  <textarea id="campaign-hint" rows="2" class="form-input" placeholder="e.g. Focus on our custom payment flow expertise and fintech vertical."></textarea>
+                </div>
+
+                <div class="campaign-actions">
+                  <button class="btn btn-indigo" id="btn-campaign-generate">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+                    Generate Drafts in Bulk
+                  </button>
+                  <button class="btn btn-emerald" id="btn-campaign-send" disabled>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                    Start Bulk Send Dispatch
+                  </button>
+                  <button class="btn btn-outline" id="btn-retry-failed" style="display:none;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>
+                    Retry Failed
+                  </button>
+                </div>
+
+                <!-- Progress Bars -->
+                <div id="bulk-progress-wrap" style="display:none; margin-top: 16px;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                    <span id="bulk-progress-label" style="font-size: 12px; font-weight: 600; color: var(--text-muted);">Generating drafts...</span>
+                    <span id="bulk-progress-count" style="font-size: 12px; color: var(--text-muted);">0 / 0</span>
+                  </div>
+                  <div style="background: var(--border-color); border-radius: 99px; height: 8px; overflow: hidden;">
+                    <div id="bulk-progress-bar" style="height: 100%; width: 0%; background: linear-gradient(90deg, #6366f1, #8b5cf6); border-radius: 99px; transition: width 0.4s ease;"></div>
+                  </div>
+                </div>
+
+                <div id="send-progress-wrap" style="display:none; margin-top: 12px;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                    <span id="send-progress-label" style="font-size: 12px; font-weight: 600; color: var(--text-muted);">Dispatching emails...</span>
+                    <span id="send-progress-count" style="font-size: 12px; color: var(--text-muted);">0 / 0</span>
+                  </div>
+                  <div style="background: var(--border-color); border-radius: 99px; height: 8px; overflow: hidden;">
+                    <div id="send-progress-bar" style="height: 100%; width: 0%; background: linear-gradient(90deg, #10b981, #059669); border-radius: 99px; transition: width 0.4s ease;"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- 4. RECIPIENTS VIEW -->
         <section class="tab-panel" id="panel-recipients">
           <div class="dashboard-card" style="width: 100%;">
             <div class="card-header flex-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
@@ -326,7 +540,7 @@
           </div>
         </section>
 
-        <!-- 3. ADD PROSPECTS VIEW -->
+        <!-- 5. ADD PROSPECTS VIEW -->
         <section class="tab-panel" id="panel-add-prospects">
           <div class="dashboard-card" style="max-width: 840px; margin: 0 auto;">
             <div class="card-header">
@@ -334,13 +548,11 @@
               <p>Register single leads or upload CSV spreadsheet lists in bulk.</p>
             </div>
 
-            <!-- TABS WITHIN ADD DRAWER -->
             <div class="add-methods-tabs">
               <button class="method-tab active" id="btn-method-single">Single Lead</button>
               <button class="method-tab" id="btn-method-bulk">Bulk List (CSV)</button>
             </div>
 
-            <!-- SINGLE FORM -->
             <form class="lead-form active" id="form-single-lead">
               <div class="form-group">
                 <label for="lead-company">Company Name *</label>
@@ -386,7 +598,6 @@
               <button class="btn btn-emerald btn-block" type="submit">Register Lead</button>
             </form>
 
-            <!-- BULK UPLOADER -->
             <div class="lead-form" id="form-bulk-leads">
               <div class="csv-drop-zone" id="csv-drop-zone">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
@@ -403,10 +614,8 @@
           </div>
         </section>
 
-
-        <!-- 3. PROFILE SETTINGS VIEW -->
+        <!-- 6. PROFILE SETTINGS VIEW -->
         <section class="tab-panel" id="panel-settings">
-          
           <div class="dashboard-card max-width-card">
             <div class="card-header">
               <h2>OnIT India Brand Profile</h2>
@@ -492,7 +701,6 @@
               <button class="btn btn-indigo" type="submit">Save Brand Changes</button>
             </form>
           </div>
-
         </section>
 
       </div>
@@ -523,93 +731,9 @@
     </div>
   </div>
 
-  <!-- MODAL: DYNAMIC CHECKLIST LOADING STATUS -->
-  <div class="modal-overlay" id="modal-loading-checklist">
-    <div class="modal-card loading-modal">
-      <h3>Generating AI Outreach Email</h3>
-      <p class="modal-sub">Running Groq AI (llama-3.1-8b-instant)...</p>
-      
-      <div class="checklist-container">
-        <div class="checklist-item pending" id="step-scrape">
-          <div class="check-indicator"></div>
-          <span>Scraping company website for insights</span>
-        </div>
-        <div class="checklist-item pending" id="step-context">
-          <div class="check-indicator"></div>
-          <span>Building brand prompt context profiles</span>
-        </div>
-        <div class="checklist-item pending" id="step-ai">
-          <div class="check-indicator"></div>
-          <span>Running Groq AI (llama-3.1-instant) inference</span>
-        </div>
-        <div class="checklist-item pending" id="step-parse">
-          <div class="check-indicator"></div>
-          <span>Parsing and saving formatted draft in DB</span>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL: CSV COLUMN MAPPER -->
-  <div class="modal-overlay" id="modal-csv-mapper">
-    <div class="modal-card">
-      <div class="card-header">
-        <h2>Map CSV Column Headers</h2>
-        <p>Ensure your CSV headers map correctly to database fields.</p>
-      </div>
-      
-      <div class="csv-mapper-form">
-        <div class="mapper-row">
-          <label>Company Name Field *</label>
-          <select class="mapper-select" id="map-company"><option value="">-- Ignore --</option></select>
-        </div>
-        <div class="mapper-row">
-          <label>Email Field *</label>
-          <select class="mapper-select" id="map-email"><option value="">-- Ignore --</option></select>
-        </div>
-        <div class="mapper-row">
-          <label>Contact Name Field</label>
-          <select class="mapper-select" id="map-contact"><option value="">-- Ignore --</option></select>
-        </div>
-        <div class="mapper-row">
-          <label>Contact Title Field</label>
-          <select class="mapper-select" id="map-title"><option value="">-- Ignore --</option></select>
-        </div>
-        <div class="mapper-row">
-          <label>Website URL Field</label>
-          <select class="mapper-select" id="map-website"><option value="">-- Ignore --</option></select>
-        </div>
-        <div class="mapper-row">
-          <label>Outreach Intent Field</label>
-          <select class="mapper-select" id="map-outreach"><option value="">-- Ignore --</option></select>
-        </div>
-        <div class="mapper-row">
-          <label>Manual Description Field</label>
-          <select class="mapper-select" id="map-desc"><option value="">-- Ignore --</option></select>
-        </div>
-      </div>
-
-      <div class="csv-preview-box">
-        <h4>CSV File Rows Preview</h4>
-        <div class="csv-preview-table-container">
-          <table class="csv-preview-table" id="table-csv-preview">
-            <thead></thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="modal-actions">
-        <button class="btn btn-outline" id="btn-csv-cancel">Cancel</button>
-        <button class="btn btn-indigo" id="btn-csv-confirm">Upload Recipient List</button>
-      </div>
-    </div>
-  </div>
-
   <!-- RIGHT SIDE DRAWER: EMAIL COMPOSER -->
   <div class="drawer-overlay" id="drawer-composer">
     <div class="drawer-container">
-      
       <div class="drawer-header">
         <div class="drawer-title-box">
           <span class="drawer-pretitle">Email Review Draft</span>
@@ -621,24 +745,18 @@
       </div>
 
       <div class="drawer-body">
-        
-        <!-- COMPOSER FIELDS -->
         <div class="composer-field">
           <label>Send To</label>
           <input type="text" id="composer-to" readonly class="input-readonly">
         </div>
-        
         <div class="composer-field">
           <label for="composer-subject">Subject Line</label>
           <input type="text" id="composer-subject" placeholder="Enter subject line...">
         </div>
-
         <div class="composer-field flex-grow-field">
           <label for="composer-body">Email Body (HTML/Plain Text Editor)</label>
           <textarea id="composer-body" placeholder="Writing custom email..."></textarea>
         </div>
-
-        <!-- ACCORDION: PERSONALIZATION NOTES & PROMPTS -->
         <div class="drawer-accordion">
           <div class="accordion-header" id="accordion-btn-notes">
             <span>AI Personalization Insights</span>
@@ -648,17 +766,6 @@
             <p id="composer-notes" class="text-muted italic">No personalization insights provided by local AI.</p>
           </div>
         </div>
-
-        <div class="drawer-accordion">
-          <div class="accordion-header" id="accordion-btn-prompt">
-            <span>Raw Prompt Details</span>
-            <svg class="accordion-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-          </div>
-          <div class="accordion-content" id="accordion-content-prompt">
-            <pre id="composer-prompt" class="prompt-preview"></pre>
-          </div>
-        </div>
-
       </div>
 
       <div class="drawer-footer">
@@ -666,7 +773,6 @@
         <button class="btn btn-indigo" id="btn-drawer-save">Save Changes</button>
         <button class="btn btn-emerald" id="btn-drawer-send">Send Email Draft</button>
       </div>
-
     </div>
   </div>
 
@@ -681,7 +787,8 @@
       </div>
     </div>
   </div>
-  <!-- TOAST NOTIFICATION CONTAINER -->
+
+  <!-- TOAST CONTAINER -->
   <div class="toast-container" id="toast-container"></div>
 
   <!-- JavaScript Logics -->
