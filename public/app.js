@@ -1451,8 +1451,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!selectedEl) return;
       const isBold = selectedEl.style.fontWeight === '700' || selectedEl.style.fontWeight === '800';
       selectedEl.style.fontWeight = isBold ? '400' : '700';
-      cfbBold.classList.toggle('active', !isBold);
-      document.getElementById('cp-font-weight')?.value === (isBold ? '400' : '700');
+      const el = document.getElementById('cp-font-weight');
+      if (el) el.value = isBold ? '400' : '700';
     });
     cfbItalic?.addEventListener('click', () => {
       if (!selectedEl) return;
@@ -1469,14 +1469,18 @@ document.addEventListener('DOMContentLoaded', () => {
     cfbFontSize?.addEventListener('input', e => {
       if (!selectedEl) return;
       selectedEl.style.fontSize = e.target.value + 'px';
-      document.getElementById('cp-font-size')?.value = e.target.value;
-      document.getElementById('cp-font-size-val').textContent = e.target.value + 'px';
+      const cpFs = document.getElementById('cp-font-size');
+      if (cpFs) cpFs.value = e.target.value;
+      const cpFsVal = document.getElementById('cp-font-size-val');
+      if (cpFsVal) cpFsVal.textContent = e.target.value + 'px';
     });
     cfbColor?.addEventListener('input', e => {
       if (!selectedEl) return;
       selectedEl.style.color = e.target.value;
-      document.getElementById('cp-text-color')?.value = e.target.value;
-      document.getElementById('cp-text-hex')?.value = e.target.value;
+      const cpTc = document.getElementById('cp-text-color');
+      if (cpTc) cpTc.value = e.target.value;
+      const cpTh = document.getElementById('cp-text-hex');
+      if (cpTh) cpTh.value = e.target.value;
     });
     document.getElementById('cfb-align-left')?.addEventListener('click',   () => { if (selectedEl) selectedEl.style.textAlign = 'left'; });
     document.getElementById('cfb-align-center')?.addEventListener('click', () => { if (selectedEl) selectedEl.style.textAlign = 'center'; });
