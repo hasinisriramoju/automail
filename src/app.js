@@ -62,9 +62,13 @@ app.get('/health', (req, res) => {
 });
 
 // ─── Page Routes (MUST be before express.static so '/' serves landing, not index.html) ───
-// Landing page (marketing homepage)
+// Root route — redirect to dashboard if authenticated, else serve login page
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, '../public/landing.html'));
+  const token = extractToken(req);
+  if (verifyToken(token)) {
+    return res.redirect('/dashboard');
+  }
+  res.sendFile(path.join(__dirname, '../public/login.html'));
 });
 
 // Login page
