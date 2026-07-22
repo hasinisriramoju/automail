@@ -322,8 +322,43 @@ const getStats = async (req, res, next) => {
   }
 };
 
+/**
+ * POST /api/emails/save-draft
+ * Save a pre-built draft (e.g. poster HTML) directly without AI generation.
+ */
+const saveDraft = async (req, res, next) => {
+  try {
+    const { recipientId, subject, bodyHtml, outreachType } = req.body;
+
+    const recipient = await Recipient.findById(recipientId);
+    if (!recipient) {
+      return res.status(404).json({ success: false, error: 'Recipient not found' });
+    }
+
+    const email = await Email.create({
+      recipientId: recipient._id,
+      subject: subject || `Campaign for ${recipient.companyName}`,
+      bodyHtml: bodyHtml || '',
+      bodyText: '',
+      outreachType: outreachType || 'poster_marketing',
+      status: 'draft',
+    });
+
+    logger.info(`[Emails] Poster draft saved for ${recipient.email} | EmailId: ${email._id}`);
+
+    res.status(201).json({
+      success: true,
+      message: 'Poster draft saved successfully',
+      data: email,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   generate,
+  saveDraft,
   getEmails,
   getEmail,
   updateEmail,

@@ -6,6 +6,7 @@ const express = require('express');
 const router = express.Router();
 const {
   generate,
+  saveDraft,
   getEmails,
   getEmail,
   updateEmail,
@@ -24,6 +25,10 @@ router.get('/stats', getStats);
 
 // Generate AI email draft
 router.post('/generate', aiGenerateLimiter, validate(schemas.generateEmail), generate);
+
+// Save pre-built draft (poster, custom HTML) — no AI generation, no rate limit
+router.post('/save-draft', saveDraft);
+
 
 // CRUD
 router.get('/', getEmails);

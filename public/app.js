@@ -780,16 +780,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const formatSelect = document.getElementById('campaign-outreach-format');
     let generatedDraftIds = [];
 
-    // Multiselect dropdown toggle
-    if (msTrigger && msDropdown) {
+    // Multiselect dropdown toggle — CSS shows dropdown when .multiselect-wrap has class 'open'
+    if (msTrigger && msWrap) {
       msTrigger.addEventListener('click', (e) => {
         e.stopPropagation();
-        msDropdown.classList.toggle('active');
+        msWrap.classList.toggle('open');
       });
 
       document.addEventListener('click', (e) => {
         if (msWrap && !msWrap.contains(e.target)) {
-          msDropdown?.classList.remove('active');
+          msWrap.classList.remove('open');
         }
       });
     }
@@ -895,28 +895,33 @@ document.addEventListener('DOMContentLoaded', () => {
               `;
 
               payload = {
-                recipientId,
+                recipientId: recipId,
                 recipientEmail: recip.email,
                 recipientCompany: recip.companyName,
                 outreachType: 'poster_marketing',
-                customSubject: `🎨 Campaign Poster for ${recip.companyName}`,
-                customBodyHtml: posterHtml,
-                skipResearch: true
+                subject: `🎨 Campaign Poster for ${recip.companyName}`,
+                bodyHtml: posterHtml,
               };
             } else {
               payload = {
-                recipientId,
+                recipientId: recipId,
                 outreachType: type,
                 customHint: hint,
                 skipResearch: true
               };
             }
 
-            const res = await authFetch(`${API_BASE}/emails/generate`, {
+            let endpoint = `${API_BASE}/emails/generate`;
+            let fetchOptions = {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify(payload)
-            });
+            };
+            if (format === 'poster') {
+              endpoint = `${API_BASE}/emails/save-draft`;
+            }
+
+            const res = await authFetch(endpoint, fetchOptions);
             const data = await res.json();
             if (data.success && data.data?._id) {
               generatedDraftIds.push(data.data._id);
